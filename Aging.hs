@@ -7,22 +7,11 @@ module Aging where
   import Piece
 
   ageAll :: BoardMap -> BoardMap
-  ageAll boardMap = boardMap
+  ageAll boardMap = Map.union combinedRoster boardMap
     where
 
-      preagePiece :: Location -> Piece -> Piece
-      preagePiece locationOfPiece piece = Piece {
-        colour            =   colour piece                         ,
-        kind              =   kind piece                           ,
-        nextLocation      =   Just $ ageLocation locationOfPiece   ,
-        previousLocation  =   previousLocation piece               }
-
-      agePiece :: Location -> Piece -> Piece
-      agePiece locationOfPiece piece = Piece {
-        colour            =   colour piece                         ,
-        kind              =   kind piece                           ,
-        nextLocation      =   Nothing                              ,
-        previousLocation  =   Just locationOfPiece                 }
+      unprocessedRoster :: BoardMap
+      unprocessedRoster = Map.filter(isNothing . nextLocation) boardMap
 
       ageLocation :: Location -> Location
       ageLocation location = Location {
@@ -30,11 +19,25 @@ module Aging where
         x_value = x_value location        ,
         y_value = y_value location        }
 
-      roster :: BoardMap
-      roster = Map.filter(isNothing . nextLocation) boardMap
-
       agedRoster :: BoardMap
-      agedRoster = roster
+      agedRoster = (Map.mapKeys ageLocation . Map.mapWithKey agePiece) unprocessedRoster
+        where
+          agePiece :: Location -> Piece -> Piece
+          agePiece locationOfPiece piece = Piece {
+            colour            =   colour piece                          ,
+            kind              =   kind piece                            ,
+            nextLocation      =   Nothing                               ,
+            previousLocation  =   Just locationOfPiece                  }
 
-      preagedBoardMap :: BoardMap
-      preagedBoardMap = Map.mapWithKey preagePiece roster
+      preagedRoster :: BoardMap
+      preagedRoster = Map.mapWithKey preagePiece unprocessedRoster
+        where
+          preagePiece :: Location -> Piece -> Piece
+          preagePiece locationOfPiece piece = Piece {
+            colour            =   colour piece                         ,
+            kind              =   kind piece                           ,
+            nextLocation      =   Just $ ageLocation locationOfPiece   ,
+            previousLocation  =   previousLocation piece               }
+
+      combinedRoster :: BoardMap
+      combinedRoster = Map.union agedRoster preagedRoster
