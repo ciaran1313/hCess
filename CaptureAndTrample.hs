@@ -1,4 +1,4 @@
-module Capture where
+module CaptureAndTrample where
 
   import qualified Data.Map as Map
   import Data.Maybe

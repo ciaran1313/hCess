@@ -26,6 +26,7 @@ module Aging where
           agePiece locationOfPiece piece = Piece {
             colour            =   colour piece                          ,
             kind              =   kind piece                            ,
+            isStop            =   True                                  ,
             nextLocation      =   Nothing                               ,
             previousLocation  =   Just locationOfPiece                  }
 
@@ -36,6 +37,7 @@ module Aging where
           preagePiece locationOfPiece piece = Piece {
             colour            =   colour piece                         ,
             kind              =   kind piece                           ,
+            isStop            =   True                                 ,
             nextLocation      =   Just $ ageLocation locationOfPiece   ,
             previousLocation  =   previousLocation piece               }
 

@@ -22,6 +22,7 @@ module Piece where
     Piece {
       colour                ::    Colour              ,
       kind                  ::    Kind                ,
+      isStop                ::    Bool                ,
       nextLocation          ::    (Maybe Location)    ,
       previousLocation      ::    (Maybe Location)    }
     |
@@ -29,12 +30,12 @@ module Piece where
     deriving (Eq)
 
   pathIndicator :: Piece -> Char
-  pathIndicator p = if nextLocation p == Nothing then ' ' else '*'
+  pathIndicator p = if nextLocation p == Nothing then ' ' else if isStop p then '#' else '*'
 
   asciiSymbol, unicodeSymbol, symbol :: Maybe Piece -> String
 
   asciiSymbol Nothing = "   "
-  asciiSymbol (Just p@(Piece c t _ _)) = [colourChar c, typeChar t, pathIndicator p]
+  asciiSymbol (Just p@(Piece c t _ _ _)) = [colourChar c, typeChar t, pathIndicator p]
     where
 
       colourChar :: Colour -> Char
@@ -53,17 +54,17 @@ module Piece where
   unicodeSymbol (Just p) = symbolFor p ++ (pathIndicator p) : " "
     where
       symbolFor :: Piece -> String
-      symbolFor(Piece White (Pawn _)    _ _)    =   "♙"
-      symbolFor(Piece White (Rook _)    _ _)    =   "♖"
-      symbolFor(Piece White Knight      _ _)    =   "♘"
-      symbolFor(Piece White Bishop      _ _)    =   "♗"
-      symbolFor(Piece White Queen       _ _)    =   "♕"
-      symbolFor(Piece White (King _)    _ _)    =   "♔"
-      symbolFor(Piece Black (Pawn _)    _ _)    =   "♟"
-      symbolFor(Piece Black (Rook _)    _ _)    =   "♜"
-      symbolFor(Piece Black Knight      _ _)    =   "♞"
-      symbolFor(Piece Black Bishop      _ _)    =   "♝"
-      symbolFor(Piece Black Queen       _ _)    =   "♛"
-      symbolFor(Piece Black (King _)    _ _)    =   "♚"
+      symbolFor(Piece White (Pawn _)    _ _ _)    =   "♙"
+      symbolFor(Piece White (Rook _)    _ _ _)    =   "♖"
+      symbolFor(Piece White Knight      _ _ _)    =   "♘"
+      symbolFor(Piece White Bishop      _ _ _)    =   "♗"
+      symbolFor(Piece White Queen       _ _ _)    =   "♕"
+      symbolFor(Piece White (King _)    _ _ _)    =   "♔"
+      symbolFor(Piece Black (Pawn _)    _ _ _)    =   "♟"
+      symbolFor(Piece Black (Rook _)    _ _ _)    =   "♜"
+      symbolFor(Piece Black Knight      _ _ _)    =   "♞"
+      symbolFor(Piece Black Bishop      _ _ _)    =   "♝"
+      symbolFor(Piece Black Queen       _ _ _)    =   "♛"
+      symbolFor(Piece Black (King _)    _ _ _)    =   "♚"
 
   symbol = asciiSymbol

@@ -19,7 +19,12 @@
         where
 
           makeNewPiece :: Colour -> Kind -> Piece
-          makeNewPiece c k = Piece c k Nothing Nothing
+          makeNewPiece c k = Piece {
+            colour            = c         ,
+            kind              = k         ,
+            isStop            = True      ,
+            nextLocation      = Nothing   ,
+            previousLocation  = Nothing   }
 
           makePawnLine :: Colour -> Int -> [(Location, Piece)]
           makePawnLine colour y = zip (map(\x -> Location 0 x y)[0..7]) (repeat $ makeNewPiece colour virginPawn)

@@ -19,7 +19,7 @@ module Path where
       actualDiffList = sort $ map(\f -> abs $ f destination - f startSquare)[t_value, x_value, y_value]
 
       basePiece :: Maybe (Maybe Location -> Maybe Location -> Piece.Piece)
-      basePiece = Piece.Piece <$> (Piece.colour <$> piece) <*> (Piece.kind <$> piece)
+      basePiece = Piece.Piece <$> (Piece.colour <$> piece) <*> (Piece.kind <$> piece) <*> (Just True)
 
       pieceAtStartSquare :: Maybe Piece.Piece
       pieceAtStartSquare = basePiece <*> (Just $ Just destination) <*> (Piece.previousLocation <$> piece)
@@ -31,11 +31,17 @@ module Path where
   markLinearPath :: MovementLimitations -> Maybe Piece.Piece -> Location -> Location -> BoardMap -> Maybe BoardMap
   markLinearPath limitations movingPiece startSquare destination boardMap
     | obstructedPath = Nothing
-    | otherwise = putMarks <$> originColour <*> originKind <*> (Piece.previousLocation <$> movingPiece) <*> calculatedPath <*> Just boardMap
+    | otherwise = Map.insert startSquare <$> newPieceAtStartSquare <*> (putMarks <$> originColour <*> originKind <*> (Just $ Just startSquare) <*> calculatedPath <*> Just boardMap)
     where
 
+      newPieceAtStartSquare :: Maybe Piece.Piece
+      newPieceAtStartSquare = Piece.Piece <$> (Piece.colour <$> oldPieceAtStartSquare) <*> (Piece.kind <$> oldPieceAtStartSquare) <*> (Just True) <*> Just (head <$> calculatedPath) <*> (Piece.previousLocation <$> oldPieceAtStartSquare)
+          where
+            oldPieceAtStartSquare :: Maybe Piece.Piece
+            oldPieceAtStartSquare = Map.lookup startSquare boardMap
+
       obstructedPath :: Bool
-      obstructedPath = fromMaybe True $ (foldl(\acc x -> if isJust $ Map.lookup x boardMap then True else acc) False . tail) <$> calculatedPath
+      obstructedPath = fromMaybe True $ (foldl(\acc x -> if isJust $ Map.lookup x boardMap then True else acc) False) <$> calculatedPath
 
       originColour :: Maybe Piece.Colour
       originColour = Piece.colour <$> movingPiece
@@ -49,8 +55,8 @@ module Path where
 
           calculatePath :: RelativePosition -> [Location]
           calculatePath r
-            | distance r == 0 = [origin r]
-            | otherwise = (origin r) : calculatePath RelativePosition {
+            | distance r == 0 = []
+            | otherwise = nextLocation : calculatePath RelativePosition {
               t_direction = t_direction r   ,
               x_direction = x_direction r   ,
               y_direction = y_direction r   ,
@@ -81,6 +87,7 @@ module Path where
               piece = Piece.Piece {
                 Piece.colour = c                          ,
                 Piece.kind = k                            ,
+                Piece.isStop = False                      ,
                 Piece.nextLocation = next                 ,
                 Piece.previousLocation = prev             }
                 where
