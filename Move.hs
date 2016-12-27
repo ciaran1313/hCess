@@ -8,6 +8,7 @@ module Move where
   import Location
   import MovementLimitations
   import Aging
+  import CaptureOrTrample
 
   pathFunctionFor :: Piece.Kind -> (Maybe Piece.Piece -> Location -> Location -> BoardMap -> Maybe BoardMap)
 
@@ -53,7 +54,7 @@ module Move where
         newTurnColour = Piece.opponent turnColour
 
         newBoardMap :: Maybe BoardMap
-        newBoardMap = pathFunction movingPiece startSquare destination boardMap
+        newBoardMap = (pathFunction movingPiece) startSquare destination $ captureOrTrample destination boardMap
           where
             pathFunction :: Maybe Piece.Piece -> Location -> Location -> BoardMap -> Maybe BoardMap
             pathFunction = fromMaybe(\ _ _ _ _ -> Nothing)(pathFunctionFor <$> (Piece.kind <$> movingPiece))
