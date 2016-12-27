@@ -6,7 +6,7 @@ import Location
 import RelativePosition
 import Coordinate
 import Piece
-import CaptureAndTrample
+import CaptureOrTrample
 
 instance Show Piece where
   show p = "----->" ++ asciiSymbol(Just p) ++ '(': (show $ previousLocation p) ++ " to " ++ (show $ nextLocation p) ++ (if isStop p then " - isStop" else []) ++ ")\n"

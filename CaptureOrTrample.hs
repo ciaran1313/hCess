@@ -1,4 +1,4 @@
-module CaptureAndTrample where
+module CaptureOrTrample where
 
   import qualified Data.Map as Map
   import Data.Maybe
@@ -11,7 +11,7 @@ module CaptureAndTrample where
     where
 
       isCapture :: Bool
-      isCapture = fromMaybe False (isStop <$> Map.lookup location boardMap
+      isCapture = fromMaybe False (isStop <$> Map.lookup location boardMap)
 
       captureToward :: (Piece -> Maybe Location) -> (Piece -> Bool) -> Maybe Location -> BoardMap -> BoardMap
       captureToward f terminationCondition m_location boardMap
