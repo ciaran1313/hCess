@@ -6,8 +6,8 @@ module CaptureOrTrample where
   import Game (BoardMap)
   import Piece
 
-  capture :: Location -> BoardMap -> BoardMap
-  capture location boardMap = captureToward nextLocation (\ _ -> False) (Just location) $ captureToward previousLocation (if isCapture then isStop else (\ _ -> False)) (Map.lookup location boardMap >>= previousLocation) $ boardMap
+  captureOrTrample :: Location -> BoardMap -> BoardMap
+  captureOrTrample location boardMap = captureToward nextLocation (\ _ -> False) (Just location) $ captureToward previousLocation (if isCapture then isStop else (\ _ -> False)) (Map.lookup location boardMap >>= previousLocation) $ boardMap
     where
 
       isCapture :: Bool
