@@ -4,7 +4,7 @@ module Coordinate where
   import Location
 
   data Coordinate = T | X | Y
-    deriving (Eq, Show)
+    deriving (Eq, Show, Read)
 
   thingFor :: a -> a -> a -> Coordinate -> a
   thingFor t x y T = t

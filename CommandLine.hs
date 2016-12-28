@@ -8,30 +8,8 @@ module Main where
   import CrossSection
   import Location
 
-  parseMove :: String -> [Location]
-  parseMove = map read . filter(/="to") . words
-
-  helpMessage :: IO ()
-  helpMessage = putStrLn "Enter your move. (Example \"b2n to b4n\" or \"h6ii g6iv\")"
-
-  getMove :: IO [Location]
-  getMove = do {
-    input <- getLine;
-    if input == "?" || input == "help"
-      then do {
-        helpMessage;
-        getMove;
-      }
-      else
-        let moveList = parseMove input in
-          if length moveList == 2
-            then return moveList
-            else do{
-              putStrLn "INVALID INPUT. (try ? or help)";
-              getMove;
-            }
-          ;
-  }
+  helpMessage :: String
+  helpMessage = "Enter your move. (Example: \"move b2n to b4n\" or \"move h6ii g6iv\")"
 
   type RunParams = ((Coordinate, Int), Coordinate, Coordinate, Game)
 
@@ -45,8 +23,16 @@ module Main where
       newGameState = move startSquare destination game
 
       new_n :: Int
-      new_n = n + 1
+      new_n
+        | (vis_t == T && n == turnNumber game) = n + 1
+        | otherwise = n
 
+  pause :: IO ()
+  pause = do {
+    putStrLn "(PRESS ENTER TO CONTINUE)";
+    getLine;
+    return ();
+  }
 
   main :: IO ()
   main = runGame ((T,0), X, Y, newGame)
@@ -55,6 +41,42 @@ module Main where
       runGame oldParams@((vis_t, n), vis_x, vis_y, game) = do {
         print $ cutCrossSection (vis_t, n) vis_x vis_y game;
         putStrLn $ (++ ":")(show $ turnColour game);
-        moveList <- getMove;
-        runGame $ newParams oldParams moveList;
-      }
+        argv <- fmap words getLine;
+        let argc = length argv in
+          case head argv of
+
+            "help" -> if argc == 1
+              then do {
+                putStrLn helpMessage;
+                pause;
+                runGame oldParams;
+              } else badargc;
+
+            "move" -> if argc >= 3
+              then runGame $ newParams oldParams $ (map read . filter (/= "to") . tail :: [String] -> [Location]) argv;
+              else badargc;
+
+            "view" -> if argc == 5
+              then runGame ((new_vis_t, new_n), new_vis_x, new_vis_y, game)
+              else badargc
+              where
+                new_vis_t, new_vis_x, new_vis_y :: Coordinate
+                new_vis_t = read $ argv !! 1
+                new_vis_x = read $ argv !! 3
+                new_vis_y = read $ argv !! 4
+
+                new_n :: Int
+                new_n = read $ argv !! 2
+
+            _ -> do {
+              putStrLn $ "Please enter a valid command. (Example: \"help\")";
+              pause;
+              runGame oldParams;
+          }
+      } where
+          badargc :: IO ()
+          badargc = do {
+            putStrLn "Invalid number of arguments";
+            pause;
+            runGame oldParams;
+          }
