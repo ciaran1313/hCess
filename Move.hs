@@ -2,7 +2,7 @@ module Move where
 
   import Data.Maybe
   import qualified Data.Map as Map
-  import Game hiding (turnNumber, turnColour, boardMap)
+  import Game hiding (turnNumber, turnColour, selectedSquare, boardMap)
   import qualified Piece
   import Path
   import Location
@@ -39,13 +39,14 @@ module Move where
     diagonalPathAllowed = True    ,
     maximumDistance     = Just 1  }
 
-
-  move :: Location -> Location -> Game -> Maybe Game
-  move startSquare destination (Game turnNumber turnColour boardMap) = Game newTurnNumber newTurnColour <$> (ageAll <$> newBoardMap)
+  move :: Location -> Game -> Maybe Game
+  move destination (Game turnNumber turnColour selectedSquare boardMap)
+    | isNothing selectedSquare = Nothing
+    | otherwise = Game newTurnNumber newTurnColour Nothing <$> (ageAll <$> newBoardMap)
       where
 
         movingPiece :: Maybe Piece.Piece
-        movingPiece = Map.lookup startSquare boardMap
+        movingPiece = selectedSquare >>= (flip Map.lookup) boardMap
 
         newTurnNumber :: Int
         newTurnNumber = turnNumber + 1
@@ -54,7 +55,7 @@ module Move where
         newTurnColour = Piece.opponent turnColour
 
         newBoardMap :: Maybe BoardMap
-        newBoardMap = (pathFunction movingPiece) startSquare destination $ captureOrTrample destination boardMap
+        newBoardMap = selectedSquare >>= \startSquare -> (pathFunction movingPiece) startSquare destination $ captureOrTrample destination boardMap
           where
             pathFunction :: Maybe Piece.Piece -> Location -> Location -> BoardMap -> Maybe BoardMap
             pathFunction = fromMaybe(\ _ _ _ _ -> Nothing)(pathFunctionFor <$> (Piece.kind <$> movingPiece))

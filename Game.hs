@@ -7,12 +7,17 @@
   type BoardMap = Map.Map Location Piece
 
   data Game = Game {
-    turnNumber    ::  Int                       ,
-    turnColour    ::  Colour                    ,
-    boardMap      ::  BoardMap                  }
+    turnNumber      ::  Int                       ,
+    turnColour      ::  Colour                    ,
+    selectedSquare  ::  Maybe Location            ,
+    boardMap        ::  BoardMap                  }
 
   newGame :: Game
-  newGame = Game 0 White makeBoardMap
+  newGame = Game {
+    turnNumber = 0            ,
+    turnColour = White        ,
+    selectedSquare = Nothing  ,
+    boardMap = makeBoardMap   }
     where
       makeBoardMap :: BoardMap
       makeBoardMap = Map.fromList(makeRoyalLine White 0 ++ makePawnLine White 1 ++ makeRoyalLine Black 7 ++ makePawnLine Black 6)

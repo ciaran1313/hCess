@@ -3,29 +3,21 @@ module Main where
   import Data.List
   import Data.Maybe
   import Game
+  import Select
   import Move
   import Coordinate
   import CrossSection
   import Location
 
   helpMessage :: String
-  helpMessage = "Enter your move. (Example: \"move b2n to b4n\" or \"move h6ii g6iv\")"
+  helpMessage = ""
+    ++ "help - print this helpMessage\n"
+    ++ "select [LOCATION] - selects a square on the board\n"
+    ++ "moveto [LOCATION] - moves the piece at the selected square to the specified LOCATION"
+    ++ "view [VIS_T] [N] [VIS_X] [VIS_Y] - sets the perspective of the board such that VIS_X is presented horizontally, VIS_Y is presented vertically, and the entire board being presented under VIS_T at level [N]"
+
 
   type RunParams = ((Coordinate, Int), Coordinate, Coordinate, Game)
-
-  newParams :: RunParams -> [Location] -> RunParams
-  newParams oldParams@((vis_t, n), vis_x, vis_y, game) [startSquare, destination]
-    | isNothing newGameState = oldParams
-    | otherwise = ((vis_t, new_n), vis_x, vis_y, fromJust newGameState)
-    where
-
-      newGameState :: Maybe Game
-      newGameState = move startSquare destination game
-
-      new_n :: Int
-      new_n
-        | (vis_t == T && n == turnNumber game) = n + 1
-        | otherwise = n
 
   pause :: IO ()
   pause = do {
@@ -55,8 +47,14 @@ module Main where
                     runGame oldParams;
                   } else badargc;
 
-                "move" -> if argc >= 3
-                  then runGame $ newParams oldParams $ (map read . filter (/= "to") . tail :: [String] -> [Location]) argv;
+                "select" -> if argc == 2
+                  then runGame ((vis_t, n), vis_x, vis_y, select (read (argv!!1) :: Location) game)
+                  else badargc;
+
+                "moveto" -> if argc == 2
+                  then if isJust $ move (read (argv!!1) :: Location) game
+                    then runGame ((vis_t, n + if vis_t == T && n == turnNumber game then 1 else 0), vis_x, vis_y, fromJust $ move (read (argv!!1) :: Location) game)
+                    else runGame oldParams;
                   else badargc;
 
                 "view" -> if argc == 5

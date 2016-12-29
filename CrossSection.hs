@@ -22,7 +22,7 @@ module CrossSection where
           square x y = Location (thingFor n x y vis_t) (thingFor n x y vis_x) (thingFor n x y vis_y)
 
   instance Show CrossSection where
-    show (CrossSection (vis_t, n) vis_x vis_y grid game) = (++)(cornerHeightIndicator ++ drop (length cornerHeightIndicator) (replicate indentLength ' ' ++ "  " ++ columnHeaderRow)) $ foldl(\acc rowNumber -> acc ++ showRowByNumber rowNumber ++ "\n" ++ divider) divider $ enumFromTo 0 $ lastIndexOf vis_y game
+    show (CrossSection (vis_t, n) vis_x vis_y grid game) = (++)(cornerHeightIndicator ++ drop (length cornerHeightIndicator) (replicate indentLength ' ' ++ "  " ++ columnHeaderRow)) $ foldl(\acc rowNumber -> acc ++ showRowByNumber rowNumber ++ "\n" ++ horizontalDivider) horizontalDivider $ enumFromTo 0 $ lastIndexOf vis_y game
       where
 
         setStringSize :: Int -> String -> String
@@ -42,8 +42,8 @@ module CrossSection where
         indentLength :: Int
         indentLength = (+) 1 $ foldl(\acc x -> max acc $ length x) 0 rowHeaders
 
-        divider :: String
-        divider = (++)(replicate indentLength ' ')(foldr(++) "+\n" $ replicate (lastIndexOf vis_x game + 1) "+ - ")
+        horizontalDivider :: String
+        horizontalDivider = (++)(replicate indentLength ' ')(foldr(++) "+\n" $ replicate (lastIndexOf vis_x game + 1) "+ - ")
 
         showRowByNumber :: Int -> String
         showRowByNumber rowNumber = header ++ rowBody
