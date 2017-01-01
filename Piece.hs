@@ -11,7 +11,7 @@ module Piece where
   opponent Black = White
 
   data Kind = Pawn {hasMoved :: Bool} | Rook {hasMoved :: Bool}  | Knight | Bishop | Queen | King {hasMoved :: Bool}
-    deriving (Eq, Show)
+    deriving (Eq)
 
   virginPawn, virginRook, virginKing :: Kind
   virginPawn = Pawn {hasMoved = False}
@@ -25,8 +25,6 @@ module Piece where
       isStop                ::    Bool                ,
       nextLocation          ::    (Maybe Location)    ,
       previousLocation      ::    (Maybe Location)    }
-    |
-    Superposition Piece Piece
     deriving (Eq)
 
   pathIndicator :: Piece -> Char

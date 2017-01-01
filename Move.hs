@@ -10,38 +10,57 @@ module Move where
   import Aging
   import CaptureOrTrample
 
-  pathFunctionFor :: Piece.Kind -> (Maybe Piece.Piece -> Location -> Location -> BoardMap -> Maybe BoardMap)
+  pathFunctionFor :: Piece.Kind -> Bool -> (Maybe Piece.Piece -> Location -> Location -> BoardMap -> Maybe BoardMap)
 
-  pathFunctionFor (Piece.Pawn hasMoved) = markLinearPath $ MovementLimitations {
-    straightPathAllowed = True                                ,
-    diagonalPathAllowed = False                               ,
-    maximumDistance     = Just (if hasMoved then 1 else 2)    }
+  pathFunctionFor (Piece.Pawn hasMoved) isCapture = pathFunctionForPawn
+    where
+      pathFunctionForPawn :: Maybe Piece.Piece -> Location -> Location -> BoardMap -> Maybe BoardMap
+      pathFunctionForPawn piece startSquare destination boardMap = pathFunctionForPawn' newPiece startSquare destination boardMap
+        where
 
-  pathFunctionFor (Piece.Rook _) = markLinearPath $ MovementLimitations {
+          pathFunctionForPawn' :: Maybe Piece.Piece -> Location -> Location -> BoardMap -> Maybe BoardMap
+          pathFunctionForPawn' = markLinearPath $ MovementLimitations {
+            straightPathAllowed = not isCapture                                   , --pawns cannot capture through straigh path
+            diagonalPathAllowed = isCapture                                       , --pawns cannot take a diagonal path with no capture
+            maximumDistance     = Just (if hasMoved || isCapture then 1 else 2)   } --if a pawn has moved or its performing a capture, it can only move 1 square. If its its first move and it's not performig a capture, it can move
+
+          newPiece ::  Maybe Piece.Piece
+          newPiece = (\c -> Piece.Piece {
+              Piece.colour = c                                      ,
+              Piece.kind = newPieceKind                             ,
+              Piece.isStop = False                                  ,
+              Piece.nextLocation = Nothing                          ,
+              Piece.previousLocation = Nothing                      }) <$> (Piece.colour <$> piece)
+              where
+                newPieceKind :: Piece.Kind
+                newPieceKind = Piece.Pawn {Piece.hasMoved = True}
+
+  pathFunctionFor (Piece.Rook _) _ = markLinearPath $ MovementLimitations {
     straightPathAllowed = True    ,
     diagonalPathAllowed = False   ,
     maximumDistance     = Nothing }
 
-  pathFunctionFor (Piece.Knight) = markDjumpPath[0,1,2]
+  pathFunctionFor (Piece.Knight) _ = markDjumpPath[0,1,2]
 
-  pathFunctionFor (Piece.Bishop) = markLinearPath $ MovementLimitations {
+  pathFunctionFor (Piece.Bishop) _ = markLinearPath $ MovementLimitations {
     straightPathAllowed = False   ,
     diagonalPathAllowed = True    ,
     maximumDistance     = Nothing }
 
-  pathFunctionFor (Piece.Queen) = markLinearPath $ MovementLimitations {
+  pathFunctionFor (Piece.Queen) _ = markLinearPath $ MovementLimitations {
     straightPathAllowed = True    ,
     diagonalPathAllowed = True    ,
     maximumDistance     = Nothing }
 
-  pathFunctionFor (Piece.King _) = markLinearPath $ MovementLimitations {
+  pathFunctionFor (Piece.King _) _ = markLinearPath $ MovementLimitations {
     straightPathAllowed = True    ,
     diagonalPathAllowed = True    ,
     maximumDistance     = Just 1  }
 
   move :: Location -> Game -> Maybe Game
-  move destination (Game turnNumber turnColour selectedSquare boardMap)
+  move destination game@(Game turnNumber turnColour selectedSquare boardMap)
     | isNothing selectedSquare = Nothing
+    | isCapture && (==)(Piece.colour <$> getPieceAt destination game)(Just turnColour) = Nothing
     | otherwise = Game newTurnNumber newTurnColour Nothing <$> (ageAll <$> newBoardMap)
       where
 
@@ -54,8 +73,11 @@ module Move where
         newTurnColour :: Piece.Colour
         newTurnColour = Piece.opponent turnColour
 
+        isCapture :: Bool
+        isCapture = fromMaybe False (Piece.isStop <$> Map.lookup destination boardMap)
+
         newBoardMap :: Maybe BoardMap
-        newBoardMap = selectedSquare >>= \startSquare -> (pathFunction movingPiece) startSquare destination $ captureOrTrample destination boardMap
+        newBoardMap = selectedSquare >>= (\startSquare -> pathFunction isCapture movingPiece startSquare destination $ captureOrTrample destination boardMap)
           where
-            pathFunction :: Maybe Piece.Piece -> Location -> Location -> BoardMap -> Maybe BoardMap
-            pathFunction = fromMaybe(\ _ _ _ _ -> Nothing)(pathFunctionFor <$> (Piece.kind <$> movingPiece))
+            pathFunction :: Bool -> Maybe Piece.Piece -> Location -> Location -> BoardMap -> Maybe BoardMap
+            pathFunction = fromMaybe(\ _ _ _ _ _ -> Nothing)(pathFunctionFor <$> (Piece.kind <$> movingPiece))
