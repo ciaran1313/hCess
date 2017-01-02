@@ -49,6 +49,7 @@ module HTMLF where
               columnHeader :: MonadIO m => Int -> m BoardElem
               columnHeader x = do {
                 element <- newElem("span");
+                setAttr element "class" "header";
                 newTextElem (enumFunctionFor vis_x x) >>= appendChild element;
                 return $ Header vis_x x element;
               }
@@ -60,11 +61,24 @@ module HTMLF where
           x_length = lastIndexOf vis_x game + 1
 
           verticalDivider, newLine :: MonadIO m => m BoardElem
-          verticalDivider = Divider <$> newTextElem("|")
+          verticalDivider = do {
+            element <- newElem("span");
+            setProp element "innerHTML" "|";
+            setAttr element "class" "background";
+            return $ Divider element;
+          }
           newLine = Divider <$> newElem("br")
 
           horizontalDivider :: MonadIO m => [m BoardElem]
-          horizontalDivider = (space indentLength) : [Divider <$> newTextElem (foldr(++) "+" $ replicate x_length "+ - "), newLine]
+          horizontalDivider = (space indentLength) : [dividerBody, newLine]
+            where
+              dividerBody :: MonadIO m => m BoardElem
+              dividerBody = do {
+                element <- newElem("span");
+                setProp element "innerHTML" (foldr(++) "+" $ replicate x_length "+ - ");
+                setAttr element "class" "background";
+                return $ Divider element;
+              }
 
           makeRow :: MonadIO m => Int -> [m BoardElem]
           makeRow y = rowHeader : space(indentLength - rowHeaderLength y) : rowBody
@@ -73,6 +87,7 @@ module HTMLF where
               rowHeader :: MonadIO m => m BoardElem
               rowHeader = do {
                 element <- newElem("span");
+                setAttr element "class" "header";
                 newTextElem (enumFunctionFor vis_y y) >>= appendChild element;
                 return $ Header vis_y y element;
               }
@@ -80,6 +95,7 @@ module HTMLF where
               square :: MonadIO m => Location -> m BoardElem
               square location = do {
                 element <- newElem("span");
+                setAttr element "class" "piece";
                 setProp element "innerHTML" (htmlSymbol $ getPieceAt location game);
                 if Just location == selectedSquare game
                   then setProp element "id" "selected"

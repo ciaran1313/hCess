@@ -2,10 +2,19 @@ body {
   color: white;
   background-color: black;
   font-family: "Courier New";
+  font-size: 32;
   white-space: pre;
 }
 
 #selected {
   color: red;
   font-style: oblique;
+}
+
+.background {
+  color: grey;
+}
+
+.header {
+  color: darkgrey;
 }
