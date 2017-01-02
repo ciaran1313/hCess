@@ -18,8 +18,7 @@ module Piece where
   virginRook = Rook {hasMoved = False}
   virginKing = King {hasMoved = False}
 
-  data Piece =
-    Piece {
+  data Piece = Piece {
       colour                ::    Colour              ,
       kind                  ::    Kind                ,
       isStop                ::    Bool                ,
@@ -66,7 +65,7 @@ module Piece where
       symbolFor(Piece Black (King _)    _ _ _)    =   "♚"
 
   htmlSymbol Nothing = "   "
-  htmlSymbol (Just p) = (symbolFor p) ++ (pathIndicator p) : "&#x2009;" --thin space so that everything lines up
+  htmlSymbol (Just p) = (symbolFor p) ++ (pathIndicator p) : "&thinsp;"
     where
       symbolFor :: Piece -> String
       symbolFor(Piece White (Pawn _)    _ _ _)    =   "&#9817;"
