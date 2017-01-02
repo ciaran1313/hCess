@@ -59,8 +59,8 @@ module Move where
 
   move :: Location -> Game -> Maybe Game
   move destination game@(Game turnNumber turnColour selectedSquare boardMap)
-    | isNothing selectedSquare = Nothing
-    | isCapture && (==)(Piece.colour <$> getPieceAt destination game)(Just turnColour) = Nothing
+    | nothingIsSelected = Nothing
+    | isCapture && pieceAtDestinationBelongsToThePlayer = Nothing
     | otherwise = Game newTurnNumber newTurnColour Nothing <$> (ageAll <$> newBoardMap)
       where
 
@@ -73,8 +73,10 @@ module Move where
         newTurnColour :: Piece.Colour
         newTurnColour = Piece.opponent turnColour
 
-        isCapture :: Bool
+        isCapture, pieceAtDestinationBelongsToThePlayer :: Bool
+        nothingIsSelected = isNothing selectedSquare
         isCapture = fromMaybe False (Piece.isStop <$> Map.lookup destination boardMap)
+        pieceAtDestinationBelongsToThePlayer = (==)(Piece.colour <$> getPieceAt destination game)(Just turnColour)
 
         newBoardMap :: Maybe BoardMap
         newBoardMap = selectedSquare >>= (\startSquare -> pathFunction isCapture movingPiece startSquare destination $ captureOrTrample destination boardMap)
