@@ -30,7 +30,7 @@ module Piece where
   pathIndicator :: Piece -> Char
   pathIndicator p = if nextLocation p == Nothing then ' ' else if isStop p then '#' else '*'
 
-  asciiSymbol, unicodeSymbol, symbol :: Maybe Piece -> String
+  asciiSymbol, unicodeSymbol, htmlSymbol, defaultSymbol :: Maybe Piece -> String
 
   asciiSymbol Nothing = "   "
   asciiSymbol (Just p@(Piece c t _ _ _)) = [colourChar c, typeChar t, pathIndicator p]
@@ -49,7 +49,7 @@ module Piece where
       typeChar (King _)   =   'K'
 
   unicodeSymbol Nothing = "   "
-  unicodeSymbol (Just p) = symbolFor p ++ (pathIndicator p) : " "
+  unicodeSymbol (Just p) = (symbolFor p) ++ (pathIndicator p) : " "
     where
       symbolFor :: Piece -> String
       symbolFor(Piece White (Pawn _)    _ _ _)    =   "♙"
@@ -65,4 +65,21 @@ module Piece where
       symbolFor(Piece Black Queen       _ _ _)    =   "♛"
       symbolFor(Piece Black (King _)    _ _ _)    =   "♚"
 
-  symbol = asciiSymbol
+  htmlSymbol Nothing = "   "
+  htmlSymbol (Just p) = (symbolFor p) ++ (pathIndicator p) : "&#x2009;" --thin space so that everything lines up
+    where
+      symbolFor :: Piece -> String
+      symbolFor(Piece White (Pawn _)    _ _ _)    =   "&#9817;"
+      symbolFor(Piece White (Rook _)    _ _ _)    =   "&#9814;"
+      symbolFor(Piece White Knight      _ _ _)    =   "&#9816"
+      symbolFor(Piece White Bishop      _ _ _)    =   "&#9815;"
+      symbolFor(Piece White Queen       _ _ _)    =   "&#9813;"
+      symbolFor(Piece White (King _)    _ _ _)    =   "&#9812;"
+      symbolFor(Piece Black (Pawn _)    _ _ _)    =   "&#9823;"
+      symbolFor(Piece Black (Rook _)    _ _ _)    =   "&#9820;"
+      symbolFor(Piece Black Knight      _ _ _)    =   "&#9822;"
+      symbolFor(Piece Black Bishop      _ _ _)    =   "&#9821;"
+      symbolFor(Piece Black Queen       _ _ _)    =   "&#9819;"
+      symbolFor(Piece Black (King _)    _ _ _)    =   "&#9818;"
+
+  defaultSymbol = asciiSymbol

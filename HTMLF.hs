@@ -80,7 +80,7 @@ module HTMLF where
               square :: MonadIO m => Location -> m BoardElem
               square location = do {
                 element <- newElem("span");
-                newTextElem (symbol $ getPieceAt location game) >>= appendChild element;
+                setProp element "innerHTML" (htmlSymbol $ getPieceAt location game);
                 if Just location == selectedSquare game
                   then setProp element "id" "selected"
                   else return ();

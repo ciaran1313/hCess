@@ -57,4 +57,4 @@ module CrossSection where
               where
 
                 show_square :: Location -> String
-                show_square square = Piece.symbol $ getPieceAt square game
+                show_square square = Piece.defaultSymbol $ getPieceAt square game
