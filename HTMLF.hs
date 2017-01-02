@@ -11,11 +11,12 @@ module HTMLF where
   import Piece
   import Game
 
-  data BoardElem = Square Location Elem | Header Elem | Divider Elem
+  data BoardElem = Square Location Elem | Header Coordinate Int Elem | Divider Elem
 
-  isSquare :: BoardElem -> Bool
-  isSquare (Square _ _) = True
-  isSquare _ = False
+  clickable :: BoardElem -> Bool
+  clickable (Square _ _) = True
+  clickable (Header _ _ _) = True
+  clickable _ = False
 
   getLocation :: BoardElem -> Maybe Location
   getLocation (Square location _) = Just location
@@ -24,7 +25,7 @@ module HTMLF where
   get_DOM_elem :: BoardElem -> Elem
   get_DOM_elem (Square _ element) = element
   get_DOM_elem (Divider element) = element
-  get_DOM_elem (Header element) = element
+  get_DOM_elem (Header _ _ element) = element
 
   showCrossSection :: MonadIO m => CrossSection -> m [BoardElem]
   showCrossSection (CrossSection (vis_t, n) vis_x vis_y grid game) = foldr(\x acc -> (:) <$> x <*> acc) (return []) boardElements
@@ -37,7 +38,7 @@ module HTMLF where
           rowHeaderLength = length . enumFunctionFor vis_y
 
           indentLength :: Int
-          indentLength = (succ . maximum) $ map rowHeaderLength (enumFromTo 0 $ lastIndexOf vis_y game) -- the length of the longest row header
+          indentLength = (succ . maximum) $ map rowHeaderLength (enumFromTo 0 $ lastIndexOf vis_y game) -- the length of the longest row header plus one
 
           space :: MonadIO m => Int -> m BoardElem
           space len = Divider <$> newTextElem(replicate len ' ')
@@ -49,7 +50,7 @@ module HTMLF where
               columnHeader x = do {
                 element <- newElem("span");
                 newTextElem (enumFunctionFor vis_x x) >>= appendChild element;
-                return $ Header element;
+                return $ Header vis_x x element;
               }
 
           x_length :: Int
@@ -70,7 +71,7 @@ module HTMLF where
               rowHeader = do {
                 element <- newElem("span");
                 newTextElem (enumFunctionFor vis_y y) >>= appendChild element;
-                return $ Header element;
+                return $ Header vis_y y element;
               }
 
               square :: MonadIO m => Location -> m BoardElem

@@ -14,9 +14,10 @@ module Main where
     ++ "help - print this helpMessage\n\n"
     ++ "select [LOCATION] - selects a square on the board\n\n"
     ++ "moveto [LOCATION] - moves the piece at the selected square to the specified LOCATION\n\n"
-    ++ "move [START] [DESTINATION] - moves the piece at the START to the DESTINATION\n\n"
+    ++ "move [START] (\"to\") [DESTINATION] - moves the piece at the START to the DESTINATION\n\n"
     ++ "view [VIS_T] [N] [VIS_X] [VIS_Y] - sets the perspective of the board such that VIS_X is presented horizontally, VIS_Y is presented vertically, and the entire board being presented under VIS_T at level [N]\n\n"
-    ++ "quit - quits the game"
+    ++ "view [LEVEL] - sets the perspective of the board. Infers VIS_T VIS_X and VIS_Y by weather LEVEL is a letter, a digit, or a roman numeral\n\n"
+    ++ "quit - quits the game\n\n"
 
   data RunParams = RunParams (Coordinate, Int) Coordinate Coordinate Game
 
@@ -98,6 +99,23 @@ module Main where
 
               new_n :: Int
               new_n = read str_new_n
+
+          runCommand["view", str_n] = runGame $ fromMaybe oldParams $ (\t n -> RunParams (t, n) new_vis_x new_vis_y game) <$> new_vis_t <*> new_n
+            where
+
+              new_vis_t :: Maybe Coordinate
+              new_vis_t = identifyEnumFunctionIn str_n
+
+              new_vis_x, new_vis_y :: Coordinate
+              new_vis_x
+                | Just vis_x /= new_vis_t = vis_x
+                | otherwise = vis_t
+              new_vis_y
+                | Just vis_y /= new_vis_t = vis_y
+                | otherwise = vis_t
+
+              new_n :: Maybe Int
+              new_n = new_vis_t >>= (flip deEnumFunctionFor str_n)
 
           runCommand["quit"] = return ()
 

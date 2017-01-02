@@ -1,6 +1,22 @@
 module RomanNumerals where
 
+  import qualified Data.Map as Map
+
   type RomanNumeral = String
+
+  romanNumberalCharacterValues :: Map.Map Char Int
+  romanNumberalCharacterValues = Map.fromList [
+    ('n', 0)    ,
+    ('i', 1)    ,
+    ('v', 5)    ,
+    ('x', 10)   ,
+    ('l', 50)   ,
+    ('c', 100)  ,
+    ('d', 500)  ,
+    ('m', 1000) ]
+
+  romanNumeralChars :: [Char]
+  romanNumeralChars = Map.keys romanNumberalCharacterValues
 
   toRomanNumeral :: Int -> RomanNumeral
   toRomanNumeral 0 = "n"
@@ -23,23 +39,12 @@ module RomanNumerals where
         | x >= 0001 = 'i' : toRomanNumeral' (x - 0001)
         | otherwise = ""
 
-  fromRomanNumeral :: RomanNumeral -> Int
-  fromRomanNumeral = fromRomanNumeral' 0 . map valueForChar
+  fromRomanNumeral :: RomanNumeral -> Maybe Int
+  fromRomanNumeral = fromRomanNumeral' (Just 0) . map (flip Map.lookup $ romanNumberalCharacterValues)
       where
-
-        valueForChar :: Char -> Int
-        valueForChar 'n' = 0
-        valueForChar 'i' = 1
-        valueForChar 'v' = 5
-        valueForChar 'x' = 10
-        valueForChar 'l' = 50
-        valueForChar 'c' = 100
-        valueForChar 'd' = 500
-        valueForChar 'm' = 1000
-
-        fromRomanNumeral' :: Int -> [Int] -> Int
+        fromRomanNumeral' :: Maybe Int -> [Maybe Int] -> Maybe Int
         fromRomanNumeral' n [] = n
-        fromRomanNumeral' n (x:xs) = (addOrSubtract)(fromRomanNumeral' n xs)(x)
+        fromRomanNumeral' n (x:xs) = addOrSubtract <$> fromRomanNumeral' n xs <*> x
           where
             addOrSubtract :: Int -> Int -> Int
             addOrSubtract
