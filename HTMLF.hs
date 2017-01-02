@@ -44,7 +44,7 @@ module HTMLF where
           space len = Divider <$> newTextElem(replicate len ' ')
 
           columnHeaderRow :: MonadIO m => [m BoardElem]
-          columnHeaderRow = (space $ indentLength + 2) : (foldr (\x acc -> (columnHeader x) : [space 3] ++ acc) [] (enumFromTo 0 $ lastIndexOf vis_x game))
+          columnHeaderRow = (space $ indentLength + 2) : (foldr (\x acc -> (columnHeader x) : [space $ 4 - columnHeaderLength x] ++ acc) [] (enumFromTo 0 $ lastIndexOf vis_x game))
             where
               columnHeader :: MonadIO m => Int -> m BoardElem
               columnHeader x = do {
@@ -52,6 +52,9 @@ module HTMLF where
                 newTextElem (enumFunctionFor vis_x x) >>= appendChild element;
                 return $ Header vis_x x element;
               }
+
+              columnHeaderLength :: Int -> Int
+              columnHeaderLength = (length . enumFunctionFor vis_x)
 
           x_length :: Int
           x_length = lastIndexOf vis_x game + 1
