@@ -15,7 +15,7 @@ module CaptureOrTrample where
 
       captureToward :: (Piece -> Maybe Location) -> (Piece -> Bool) -> Maybe Location -> BoardMap -> BoardMap
       captureToward f terminationCondition maybe_location boardMap
-        | fromMaybe True $ terminationCondition <$> pieceAtLocation = boardMap -- if the piece doesnt fit the
+        | fromMaybe True $ terminationCondition <$> pieceAtLocation = boardMap -- if the piece fits the termination condition, or there is no piece
         | otherwise = captureToward f terminationCondition (pieceAtLocation >>= f) $ Map.delete (fromJust maybe_location) boardMap
         where
           pieceAtLocation :: Maybe Piece
