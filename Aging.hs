@@ -10,14 +10,14 @@ module Aging where
   ageAll boardMap = Map.union combinedRoster boardMap
     where
 
-      unprocessedRoster :: BoardMap
-      unprocessedRoster = Map.filter(isNothing . nextLocation) boardMap
-
       ageLocation :: Location -> Location
       ageLocation location = Location {
         t_value = t_value location + 1    ,
         x_value = x_value location        ,
         y_value = y_value location        }
+
+      unprocessedRoster :: BoardMap
+      unprocessedRoster = Map.filterWithKey(\k _ -> isNothing $ Map.lookup (ageLocation k) boardMap) $ Map.filter(isNothing . nextLocation) boardMap
 
       agedRoster :: BoardMap
       agedRoster = (Map.mapKeys ageLocation . Map.mapWithKey agePiece) unprocessedRoster

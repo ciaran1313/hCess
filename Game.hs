@@ -47,3 +47,6 @@
 
   getPieceAt :: Location -> Game -> Maybe Piece
   getPieceAt location game = Map.lookup location $ boardMap game
+
+  associatedLocation :: (Piece -> Maybe Location) -> Location -> BoardMap -> Maybe Location
+  associatedLocation f location boardMap = Map.lookup location boardMap >>= f

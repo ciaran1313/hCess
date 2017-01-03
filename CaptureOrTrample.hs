@@ -3,20 +3,23 @@ module CaptureOrTrample where
   import qualified Data.Map as Map
   import Data.Maybe
   import Location
-  import Game (BoardMap)
+  import Game (BoardMap, associatedLocation)
   import Piece
 
   captureOrTrample :: Location -> BoardMap -> BoardMap
-  captureOrTrample location boardMap = captureToward nextLocation (\ _ -> False) (Just location) $ captureToward previousLocation (if isCapture then isStop else (\ _ -> False)) (Map.lookup location boardMap >>= previousLocation) $ boardMap
+  captureOrTrample location boardMap = (captureToward nextLocation never (Just location) . captureToward previousLocation (if isCapture then never else isStop) (associatedLocation previousLocation location boardMap)) boardMap
     where
 
       isCapture :: Bool
       isCapture = fromMaybe False (isStop <$> Map.lookup location boardMap)
 
       captureToward :: (Piece -> Maybe Location) -> (Piece -> Bool) -> Maybe Location -> BoardMap -> BoardMap
-      captureToward f terminationCondition m_location boardMap
-        | isNothing m_location || terminationCondition (fromJust pieceAtLocation) = boardMap
-        | otherwise = captureToward f terminationCondition (pieceAtLocation >>= f) $ Map.delete (fromJust m_location) boardMap
+      captureToward f terminationCondition maybe_location boardMap
+        | fromMaybe True $ terminationCondition <$> pieceAtLocation = boardMap -- if the piece doesnt fit the
+        | otherwise = captureToward f terminationCondition (pieceAtLocation >>= f) $ Map.delete (fromJust maybe_location) boardMap
         where
           pieceAtLocation :: Maybe Piece
-          pieceAtLocation = (>>=)(m_location)(\defloc -> Map.lookup defloc boardMap)
+          pieceAtLocation = (>>=)(maybe_location)(\defloc -> Map.lookup defloc boardMap)
+
+      never :: a -> Bool
+      never = (\_ -> False)
