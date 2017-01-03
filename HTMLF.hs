@@ -31,7 +31,7 @@ module HTMLF where
   showCrossSection (CrossSection (vis_t, n) vis_x vis_y grid game) = foldr(\x acc -> (:) <$> x <*> acc) (return []) boardElements
     where
       boardElements :: MonadIO m => [m BoardElem]
-      boardElements = foldl (\acc y -> acc ++ makeRow y ++ horizontalDivider) (columnHeaderRow ++ newLine : horizontalDivider) (enumFromTo 0 $ lastIndexOf vis_y game)
+      boardElements = (foldl (\acc y -> acc ++ makeRow y ++ horizontalDivider) (columnHeaderRow ++ newLine : horizontalDivider) (enumFromTo 0 $ lastIndexOf vis_y game)) ++ thirdDimentionHeader
         where
 
           rowHeaderLength :: Int -> Int
@@ -105,3 +105,25 @@ module HTMLF where
 
               rowBody :: MonadIO m => [m BoardElem]
               rowBody = foldr(\x acc -> verticalDivider : square x : acc)[verticalDivider, newLine] $ take x_length (grid!!y)
+
+          thirdDimentionHeader :: MonadIO m => [m BoardElem]
+          thirdDimentionHeader = [backArrow, level, forwardArrow]
+              where
+
+                arrow :: MonadIO m => String -> (Int -> Int -> Int) -> m BoardElem
+                arrow str plusOrMinus
+                  | new_n > lastIndexOf vis_t game = Divider <$> newTextElem(" ))")
+                  | new_n < 0 = Divider <$> newTextElem("(( ")
+                  | otherwise = do {
+                      element <- newElem("span");
+                      setProp element "innerHTML" str;
+                      return $ Header vis_t new_n element;
+                    }
+                  where
+                    new_n :: Int
+                    new_n = n `plusOrMinus` 1
+
+                backArrow, level, forwardArrow :: MonadIO m => m BoardElem
+                backArrow = arrow "<< " (-)
+                forwardArrow = arrow " >>" (+)
+                level = Divider <$> newTextElem(enumFunctionFor vis_t n)
