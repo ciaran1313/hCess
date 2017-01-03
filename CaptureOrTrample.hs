@@ -19,7 +19,7 @@ module CaptureOrTrample where
         | otherwise = captureToward f terminationCondition (pieceAtLocation >>= f) $ Map.delete (fromJust maybe_location) boardMap
         where
           pieceAtLocation :: Maybe Piece
-          pieceAtLocation = (>>=)(maybe_location)(\defloc -> Map.lookup defloc boardMap)
+          pieceAtLocation = maybe_location >>= flip Map.lookup boardMap
 
       never :: a -> Bool
       never = (\_ -> False)
