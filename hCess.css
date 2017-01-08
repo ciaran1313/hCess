@@ -1,6 +1,6 @@
 body {
   color: white;
-  background-color: black;
+  background-color: #0e475b;
   font-family: "Courier New";
   font-size: 24;
   white-space: pre;
@@ -17,4 +17,12 @@ body {
 
 .header {
   color: darkgrey;
+}
+
+.white_piece {
+  color: white;
+}
+
+.black_piece {
+  color: black;
 }

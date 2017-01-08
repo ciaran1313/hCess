@@ -95,8 +95,12 @@ module HTMLF where
               square :: MonadIO m => Location -> m BoardElem
               square location = do {
                 element <- newElem("span");
-                setAttr element "class" "piece";
                 setProp element "innerHTML" (htmlSymbol $ getPieceAt location game);
+                case (colour <$> getPieceAt location game) of
+                  Just White -> setAttr element "class" "white_piece"
+                  Just Black -> setAttr element "class" "black_piece"
+                  _ -> return ()
+                ;
                 if Just location == selectedSquare game
                   then setProp element "id" "selected"
                   else return ();
@@ -112,11 +116,22 @@ module HTMLF where
 
                 arrow :: MonadIO m => String -> (Int -> Int -> Int) -> m BoardElem
                 arrow str plusOrMinus
-                  | new_n > lastIndexOf vis_t game = Divider <$> newTextElem(" ))")
-                  | new_n < 0 = Divider <$> newTextElem("(( ")
+                  | new_n > lastIndexOf vis_t game = do {
+                      element <- newElem("span");
+                      setProp element "innerHTML" " ))";
+                      setAttr element "class" "header";
+                      return $ Divider element;
+                    }
+                  | new_n < 0 = do {
+                      element <- newElem("span");
+                      setProp element "innerHTML" "(( ";
+                      setAttr element "class" "header";
+                      return $ Divider element;
+                    }
                   | otherwise = do {
                       element <- newElem("span");
                       setProp element "innerHTML" str;
+                      setAttr element "class" "header";
                       return $ Header vis_t new_n element;
                     }
                   where
@@ -126,4 +141,9 @@ module HTMLF where
                 backArrow, level, forwardArrow :: MonadIO m => m BoardElem
                 backArrow = arrow "<< " (-)
                 forwardArrow = arrow " >>" (+)
-                level = Divider <$> newTextElem(enumFunctionFor vis_t n)
+                level = do {
+                  element <- newElem("span");
+                  setProp element "innerHTML" $ (enumFunctionFor vis_t) n;
+                  setAttr element "class" "header";
+                  return $ Divider element;
+                }
