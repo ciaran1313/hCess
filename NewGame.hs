@@ -5,6 +5,7 @@ module NewGame where
   import Game
   import Piece
   import Location
+  import Coordinate
 
   newGame :: Game
   newGame = Game {

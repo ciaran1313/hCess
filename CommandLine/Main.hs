@@ -11,8 +11,9 @@ module Main where
   import Data.List
   import Data.Maybe
 
-  import qualified Game
-  import qualified NewGame
+  import Game (Game, turnNumber, turnColour, selectedSquare, vis_t, vis_x, vis_y, changeView)
+  import Coordinate (Coordinate, identifyEnumFunctionIn, deEnumFunctionFor)
+  import NewGame (newGame)
   import Select
   import Move
   import Location
@@ -23,7 +24,7 @@ module Main where
 
   main :: IO ()
   main = do {
-    game_MVar <- newMVar NewGame.newGame;
+    game_MVar <- newMVar newGame;
     status_MVar <- newMVar Status.No_Issues;
     runCommand(game_MVar, status_MVar)["refresh"];
     forever $ do {
@@ -34,15 +35,15 @@ module Main where
     return ();
   } where
 
-      prompt :: Game.Game -> String
+      prompt :: Game -> String
       prompt game = colour ++ selected ++ ": "
         where
 
           colour :: String
-          colour = show $ Game.turnColour game
+          colour = show $ turnColour game
 
           selected :: String
-          selected = fromMaybe[] $ fmap(\str -> "(" ++ str ++ ")")(show <$> Game.selectedSquare game)
+          selected = fromMaybe[] $ fmap(\str -> "(" ++ str ++ ")")(show <$> selectedSquare game)
 
       invalidCommand :: IO ()
       invalidCommand= do {
@@ -53,19 +54,19 @@ module Main where
       invalidArgument :: String -> String -> IO ()
       invalidArgument arg str_type = putStrLn $ arg ++ " is not a valid " ++ str_type
 
-      runCommand :: (MVar Game.Game, MVar Status.Status) -> [String] -> IO ()
+      runCommand :: (MVar Game, MVar Status.Status) -> [String] -> IO ()
 
     -- gameinfo
       runCommand(game_MVar, status_MVar)["gameinfo"] = readMVar game_MVar >>= (\game -> putStrLn $ info game)
         where
-          info :: Game.Game -> String
+          info :: Game -> String
           info game = ""
-            ++ "turnNumber = " ++ (show $ Game.turnNumber game) ++ "\n"
-            ++ "turnColour = " ++ (show $ Game.turnColour game) ++ "\n"
-            ++ "selectedSquare = " ++ (show $ Game.selectedSquare game) ++ "\n"
-            ++ "vis_t = " ++ (show $ Game.vis_t game) ++ "\n"
-            ++ "vis_x = " ++ (show $ Game.vis_x game) ++ "\n"
-            ++ "vis_y = " ++ (show $ Game.vis_y game) ++ "\n"
+            ++ "turnNumber = " ++ (show $ turnNumber game) ++ "\n"
+            ++ "turnColour = " ++ (show $ turnColour game) ++ "\n"
+            ++ "selectedSquare = " ++ (show $ selectedSquare game) ++ "\n"
+            ++ "vis_t = " ++ (show $ vis_t game) ++ "\n"
+            ++ "vis_x = " ++ (show $ vis_x game) ++ "\n"
+            ++ "vis_y = " ++ (show $ vis_y game) ++ "\n"
 
     --pause
       runCommand(game_MVar, status_MVar)["pause"] = do {
@@ -98,7 +99,7 @@ module Main where
 
     --deselect
       runCommand(game_MVar, status_MVar)["deselect"] = do {
-        oldSelectedSquare <- Game.selectedSquare <$> readMVar game_MVar;
+        oldSelectedSquare <- selectedSquare <$> readMVar game_MVar;
         deselect game_MVar;
         putStrLn $ fromMaybe "Nothing is selected" ((++ " successfully deselected") <$> fmap show oldSelectedSquare);
         swapMVar status_MVar Status.No_Issues;
@@ -142,7 +143,7 @@ module Main where
         return ();
       } where
 
-          new_vis_t, new_vis_x, new_vis_y :: Game.Coordinate
+          new_vis_t, new_vis_x, new_vis_y :: Coordinate
           new_vis_t = read str_new_vis_t
           new_vis_x = read str_new_vis_x
           new_vis_y = read str_new_vis_y
@@ -156,25 +157,25 @@ module Main where
         if isNothing maybe_new_n -- if the new n is invalid input
           then invalidCommand; -- then it complains
           else do {
-            putMVar game_MVar $ Game.changeView (new_vis_t, fromJust maybe_new_n) (new_vis_x game) (new_vis_y game) (game);
+            putMVar game_MVar $ changeView (new_vis_t, fromJust maybe_new_n) (new_vis_x game) (new_vis_y game) (game);
             runCommand mvars ["refresh"];
             return ();
           }
       } where
 
-          new_vis_t :: Game.Coordinate
-          new_vis_t = fromJust $ Game.identifyEnumFunctionIn str_n
+          new_vis_t :: Coordinate
+          new_vis_t = fromJust $ identifyEnumFunctionIn str_n
 
-          new_vis_x, new_vis_y :: Game.Game -> Game.Coordinate
+          new_vis_x, new_vis_y :: Game -> Coordinate
           new_vis_x game
             | (Game.vis_x game) /= (new_vis_t) = (Game.vis_x game)
-            | otherwise = (fst $ Game.vis_t game)
+            | otherwise = (fst $ vis_t game)
           new_vis_y game
             | (Game.vis_y game) /= (new_vis_t) = (Game.vis_y game)
-            | otherwise = (fst $ Game.vis_t game)
+            | otherwise = (fst $ vis_t game)
 
           maybe_new_n :: Maybe Int
-          maybe_new_n = (Game.deEnumFunctionFor new_vis_t) str_n
+          maybe_new_n = (deEnumFunctionFor new_vis_t) str_n
 
     --refresh
       runCommand (game_MVar, status_MVar) ["refresh"] = readMVar game_MVar >>= print
