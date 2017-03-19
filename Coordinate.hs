@@ -1,6 +1,6 @@
 module Coordinate where
 
-  import Game
+  import Game (Game, turnNumber)
   import RomanNumerals (romanNumeralChars, toRomanNumeral, fromRomanNumeral)
 
   data Coordinate = T | X | Y

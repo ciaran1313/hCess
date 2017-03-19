@@ -2,10 +2,10 @@ module Path where
 
   import Data.List (sort)
 
-  import qualified Piece
-  import Location
+  import Piece (Kind(..))
+  import Location (Location(..))
   import MovementLimitations
-  import OffsetLocation
+  import OffsetLocation (OffsetLocation(..), calculateOffsetLocation)
 
   calculateDjumpPath :: [Int] -> Location -> Location -> Maybe [Location]
   calculateDjumpPath expectedDiffList startSquare destination
@@ -36,12 +36,12 @@ module Path where
               new_x = (+)(x_direction r)(x_value $ origin r)
               new_y = (+)(y_direction r)(y_value $ origin r)
 
-  calculatePath :: Bool -> Piece.Kind -> Location -> Location -> Maybe [Location]
-  calculatePath isCapture@(True ) (Piece.Pawn _) = calculateDjumpPath[0,1,1]
-  calculatePath isCapture@(False) (Piece.Pawn hasMoved@(True)) = calculateDjumpPath[0,0,1]
-  calculatePath isCapture@(False) (Piece.Pawn hasMoved@(False)) = calculateLinearPath (MovementLimitations{straightPathAllowed=True, diagonalPathAllowed=False, maximumDistance = 2})
-  calculatePath _ (Piece.Rook _) = calculateLinearPath (MovementLimitations{straightPathAllowed=True, diagonalPathAllowed=False, maximumDistance = maxBound})
-  calculatePath _ (Piece.Knight) = calculateDjumpPath [0,1,2]
-  calculatePath _ (Piece.Bishop) = calculateLinearPath (MovementLimitations{straightPathAllowed=True, diagonalPathAllowed=False, maximumDistance = maxBound})
-  calculatePath _ (Piece.Queen) = calculateLinearPath (MovementLimitations{straightPathAllowed=True, diagonalPathAllowed=True, maximumDistance = maxBound})
-  calculatePath _ (Piece.King _) = calculateLinearPath (MovementLimitations{straightPathAllowed=True, diagonalPathAllowed=False, maximumDistance = 1})
+  calculatePath :: Bool -> Kind -> Location -> Location -> Maybe [Location]
+  calculatePath isCapture@(True ) (Pawn _) = calculateDjumpPath[0,1,1]
+  calculatePath isCapture@(False) (Pawn hasMoved@(True)) = calculateDjumpPath[0,0,1]
+  calculatePath isCapture@(False) (Pawn hasMoved@(False)) = calculateLinearPath (MovementLimitations{straightPathAllowed=True, diagonalPathAllowed=False, maximumDistance = 2})
+  calculatePath _ (Rook _) = calculateLinearPath (MovementLimitations{straightPathAllowed=True, diagonalPathAllowed=False, maximumDistance = maxBound})
+  calculatePath _ (Knight) = calculateDjumpPath [0,1,2]
+  calculatePath _ (Bishop) = calculateLinearPath (MovementLimitations{straightPathAllowed=True, diagonalPathAllowed=False, maximumDistance = maxBound})
+  calculatePath _ (Queen) = calculateLinearPath (MovementLimitations{straightPathAllowed=True, diagonalPathAllowed=True, maximumDistance = maxBound})
+  calculatePath _ (King _) = calculateLinearPath (MovementLimitations{straightPathAllowed=True, diagonalPathAllowed=False, maximumDistance = 1})

@@ -1,9 +1,9 @@
 module CommandLine.Show where
 
-  import Game
-  import Location
-  import Piece
-  import Coordinate
+  import Game (Game(..), getPieceAt)
+  import Location (Location(..))
+  import Piece (defaultSymbol)
+  import Coordinate (lastIndexOf, thingFor, enumFunctionFor)
 
   instance Show Game where
     show game@(Game _ _ selectedSquare (vis_t, n) vis_x vis_y boardMap) = (++)(cornerHeightIndicator ++ drop (length cornerHeightIndicator) (replicate indentLength ' ' ++ "  " ++ columnHeaderRow)) $ foldl(\acc rowNumber -> acc ++ showRowByNumber rowNumber ++ "\n" ++ horizontalDivider) horizontalDivider $ enumFromTo 0 $ lastIndexOf vis_y game

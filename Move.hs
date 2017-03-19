@@ -1,63 +1,58 @@
 module Move where
 
-  import Control.Concurrent
-  import Control.Concurrent.MVar
+  import Control.Concurrent.MVar (MVar, readMVar, swapMVar)
 
-  import Data.Maybe
-  import qualified Data.Map as Map
+  import Data.Maybe (isJust, fromMaybe)
 
-  import qualified Game
-  import qualified Piece
-  import qualified Path
-  import qualified Location
-  import qualified MovementLimitations
-  import qualified Aging
-  import qualified CaptureOrTrample
-  import qualified Status
+  import Game (Game, turnColour, selectedSquare, getPieceAt)
+  import Piece (Kind, colour, kind)
+  import Path (calculatePath)
+  import Location (Location)
+  import Status (Status(..))
 
-  move :: Location.Location -> (MVar Game.Game, MVar Status.Status) -> IO ()
+  move :: Location -> (MVar Game, MVar Status) -> IO ()
   move destination (game_MVar, status_MVar) = do {
       game <- readMVar game_MVar;
-      (if Game.selectedSquare game == Nothing
-        then changeStatus Status.Player_Tried_To_Move_With_Nothing_Selected
-        else if (==)(Just $ Game.turnColour game)(Piece.colour <$> Game.getPieceAt game destination)
-          then changeStatus Status.Player_Tried_To_Capture_Their_Own_Piece
+      (if selectedSquare game == Nothing
+        then changeStatus Player_Tried_To_Move_With_Nothing_Selected
+        else if (==)(Just $ turnColour game)(colour <$> getPieceAt game destination)
+          then changeStatus Player_Tried_To_Capture_Their_Own_Piece
           else if path game == Nothing
-            then changeStatus Status.Illegal_Path
+            then changeStatus Illegal_Path
             else if pathIsObstructed game
-              then changeStatus (Status.Obstructed_Path_At $ obstructions game)
+              then changeStatus (Obstructed_Path_At $ obstructions game)
               else do {
-                changeStatus Status.No_Issues;
+                changeStatus No_Issues;
 
                 return ();
               }
       );
     } where
       {-}
-        markPath :: [Location.Location] -> Location.Location -> IO ()
+        markPath :: [Location] -> Location -> IO ()
         markPath (location:nextLocation:locations) previousLocation = do {
           game <- takeMVar game_MVar;
-          Game.putPieceAt game location (fromJust $ getPieceAt game location);
+          putPieceAt game location (fromJust $ getPieceAt game location);
           return ();
         -}
 
-        path :: Game.Game -> Maybe [Location.Location]
-        path game = (Path.calculatePath isCapture <$> kind <*> Game.selectedSquare game <*> Just destination) >>= id
+        path :: Game -> Maybe [Location]
+        path game = (calculatePath isCapture <$> piece_kind <*> selectedSquare game <*> Just destination) >>= id
           where
 
             isCapture :: Bool
-            isCapture = isJust $ Game.getPieceAt game destination
+            isCapture = isJust $ getPieceAt game destination
 
-            kind :: Maybe Piece.Kind
-            kind = fmap Piece.kind (Game.selectedSquare game >>= Game.getPieceAt game)
+            piece_kind :: Maybe Kind
+            piece_kind = fmap kind (selectedSquare game >>= getPieceAt game)
 
-        obstructions :: Game.Game -> [Location.Location]
-        obstructions game = fromMaybe [] $ filter (isJust . Game.getPieceAt game) <$> (path game)
+        obstructions :: Game -> [Location]
+        obstructions game = fromMaybe [] $ filter (isJust . getPieceAt game) <$> (path game)
 
-        pathIsObstructed :: Game.Game -> Bool
+        pathIsObstructed :: Game -> Bool
         pathIsObstructed game = (length $ obstructions game) > 0
 
-        changeStatus :: Status.Status -> IO ()
+        changeStatus :: Status -> IO ()
         changeStatus newStatus = do {
           swapMVar status_MVar newStatus;
           return ();

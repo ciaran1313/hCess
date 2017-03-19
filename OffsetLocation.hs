@@ -1,9 +1,7 @@
 module OffsetLocation where
 
-  import Data.Maybe
-
-  import Location
-  import MovementLimitations
+  import Location (Location, t_value, x_value, y_value)
+  import MovementLimitations (MovementLimitations(..))
 
   type Direction = Int
 

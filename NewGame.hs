@@ -1,11 +1,11 @@
 module NewGame where
 
-  import qualified Data.Map as Map
+  import qualified Data.Map as Map (fromList)
 
-  import Game
-  import Piece
-  import Location
-  import Coordinate
+  import Game (Game(..), BoardMap(..))
+  import Piece (Piece(..), Colour(..), Kind(..), virginPawn, virginRook, virginKing)
+  import Location (Location(..))
+  import Coordinate (Coordinate(..))
 
   newGame :: Game
   newGame = Game {

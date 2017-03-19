@@ -1,28 +1,26 @@
 module Select where
 
-  import Control.Concurrent
-  import Control.Concurrent.MVar
+  import Control.Concurrent.MVar (MVar, readMVar, swapMVar)
 
-  import Data.Maybe
+  import Data.Maybe (isJust, isNothing)
 
-  import Location
-  import qualified Game
-  import Piece
-  import qualified Status
-  import Status (Status)
+  import Location (Location)
+  import Game (Game(..), getPieceAt, setSelectedSquare)
+  import Piece (colour, nextLocation)
+  import Status (Status(..))
 
-  select :: Location -> (MVar Game.Game, MVar Status) -> IO ()
+  select :: Location -> (MVar Game, MVar Status) -> IO ()
   select location (game_MVar, status_MVar) = do {
     game <- readMVar game_MVar;
-    (if isNothing (Game.getPieceAt game location)
-      then changeStatus (Status.Player_Tried_To_Select_An_Empty_Square location)
-      else if (/=)(colour <$> Game.getPieceAt game location)(Just $ Game.turnColour game)
-        then changeStatus (Status.Player_Tried_To_Select_An_Opponents_Piece location)
-        else if isJust (Game.getPieceAt game location >>= nextLocation)
-          then changeStatus (Status.Player_Tried_To_Select_An_Piece_Thats_Already_Been_Moved location $ Game.getPieceAt game location)
+    (if isNothing (getPieceAt game location)
+      then changeStatus (Player_Tried_To_Select_An_Empty_Square location)
+      else if (/=)(colour <$> getPieceAt game location)(Just $ turnColour game)
+        then changeStatus (Player_Tried_To_Select_An_Opponents_Piece location)
+        else if isJust (getPieceAt game location >>= nextLocation)
+          then changeStatus (Player_Tried_To_Select_An_Piece_Thats_Already_Been_Moved location $ getPieceAt game location)
           else do {
-            swapMVar game_MVar (Game.setSelectedSquare game $ Just location);
-            changeStatus Status.No_Issues;
+            swapMVar game_MVar (setSelectedSquare game $ Just location);
+            changeStatus No_Issues;
             return ();
           }
     );
@@ -33,9 +31,9 @@ module Select where
         return ();
       }
 
-  deselect :: MVar Game.Game -> IO ()
+  deselect :: MVar Game -> IO ()
   deselect game_MVar = do {
     game <- readMVar game_MVar;
-    swapMVar game_MVar (Game.setSelectedSquare game Nothing);
+    swapMVar game_MVar (setSelectedSquare game Nothing);
     return ();
   }

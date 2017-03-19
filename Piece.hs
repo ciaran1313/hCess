@@ -1,7 +1,6 @@
 module Piece where
 
-  import Data.Maybe
-  import Location
+  import Location (Location)
 
   data Colour = White | Black
     deriving (Eq, Show)

@@ -1,31 +1,29 @@
 module Main where
 
-  import Control.Concurrent
-  import Control.Concurrent.MVar
-  import Control.Monad
+  import Control.Concurrent.MVar (MVar, newMVar, takeMVar, putMVar, readMVar, swapMVar)
+  import Control.Monad (forever)
 
-  import System.Exit
+  import System.Exit (exitSuccess)
 
-  import Text.Read
+  import Text.Read (readMaybe)
 
-  import Data.List
-  import Data.Maybe
+  import Data.Maybe (fromJust, fromMaybe, isJust, isNothing)
 
   import Game (Game, turnNumber, turnColour, selectedSquare, vis_t, vis_x, vis_y, changeView)
   import Coordinate (Coordinate, identifyEnumFunctionIn, deEnumFunctionFor)
   import NewGame (newGame)
-  import Select
-  import Move
-  import Location
-  import qualified Status
+  import Select (select, deselect)
+  import Move (move)
+  import Location (Location)
+  import Status (Status(..), message)
 
-  import CommandLine.HelpMessage
-  import CommandLine.Show
+  import CommandLine.HelpMessage (helpMessage)
+  import CommandLine.Show ()
 
   main :: IO ()
   main = do {
     game_MVar <- newMVar newGame;
-    status_MVar <- newMVar Status.No_Issues;
+    status_MVar <- newMVar No_Issues;
     runCommand(game_MVar, status_MVar)["refresh"];
     forever $ do {
       game <- readMVar game_MVar;
@@ -54,7 +52,7 @@ module Main where
       invalidArgument :: String -> String -> IO ()
       invalidArgument arg str_type = putStrLn $ arg ++ " is not a valid " ++ str_type
 
-      runCommand :: (MVar Game, MVar Status.Status) -> [String] -> IO ()
+      runCommand :: (MVar Game, MVar Status) -> [String] -> IO ()
 
     -- gameinfo
       runCommand(game_MVar, status_MVar)["gameinfo"] = readMVar game_MVar >>= (\game -> putStrLn $ info game)
@@ -88,9 +86,9 @@ module Main where
         then do {
           select (fromJust maybe_location) mvars;
           status <- readMVar status_MVar;
-          putStrLn (if status == Status.No_Issues
+          putStrLn (if status == No_Issues
             then str_location ++ " successfully selected"
-            else Status.message status
+            else message status
           );
         } else invalidArgument str_location "location"
           where
@@ -102,7 +100,7 @@ module Main where
         oldSelectedSquare <- selectedSquare <$> readMVar game_MVar;
         deselect game_MVar;
         putStrLn $ fromMaybe "Nothing is selected" ((++ " successfully deselected") <$> fmap show oldSelectedSquare);
-        swapMVar status_MVar Status.No_Issues;
+        swapMVar status_MVar No_Issues;
         return ();
       }
 
@@ -111,9 +109,9 @@ module Main where
         then do {
           move (fromJust maybe_location) mvars;
           status <- readMVar status_MVar;
-          if status == Status.No_Issues
+          if status == No_Issues
             then runCommand mvars ["refresh"];
-            else putStrLn $ Status.message status;
+            else putStrLn $ message status;
           return ();
         } else invalidArgument str_location "location"
         where
@@ -126,9 +124,9 @@ module Main where
         | otherwise = do {
           runCommand mvars ["select", filteredArguments!!0];
           status <- readMVar status_MVar;
-          (if status == Status.No_Issues
+          (if status == No_Issues
             then runCommand mvars ["moveto", filteredArguments!!1]
-            else putStrLn $ Status.message status
+            else putStrLn $ message status
           );
           return ();
         } where
@@ -181,7 +179,7 @@ module Main where
       runCommand (game_MVar, status_MVar) ["refresh"] = readMVar game_MVar >>= print
 
     --status
-      runCommand (game_MVar, status_MVar) ["status"] = readMVar status_MVar >>= putStrLn . Status.message
+      runCommand (game_MVar, status_MVar) ["status"] = readMVar status_MVar >>= putStrLn . message
 
     --quit
       runCommand _ ["quit"] = exitSuccess

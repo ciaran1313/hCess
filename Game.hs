@@ -1,10 +1,10 @@
  module Game where
 
-  import qualified Data.Map as Map
+  import qualified Data.Map as Map (Map, insert, lookup)
 
-  import Piece
-  import Location
-  import {-# SOURCE #-} Coordinate
+  import Piece (Piece, Colour)
+  import Location (Location)
+  import {-# SOURCE #-} Coordinate (Coordinate)
 
   type BoardMap = Map.Map Location Piece
 

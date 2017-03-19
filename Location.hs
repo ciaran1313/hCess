@@ -1,9 +1,9 @@
 module Location where
 
-  import RomanNumerals (toRomanNumeral)
-  import {-# SOURCE #-} Coordinate
+  import Data.Maybe (fromJust)
 
-  import Data.Maybe
+  import RomanNumerals (toRomanNumeral)
+  import {-# SOURCE #-} Coordinate (toFile, toRank, fromTurn, fromFile, fromRank)
 
   data Location = Location{
     t_value :: Int  ,

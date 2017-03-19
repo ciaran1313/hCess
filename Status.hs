@@ -1,9 +1,7 @@
 module Status where
 
-  import Data.List
-
-  import Piece
-  import Location
+  import Piece (Piece(..))
+  import Location (Location)
 
   data Status = No_Issues
               | Player_Tried_To_Select_An_Empty_Square Location

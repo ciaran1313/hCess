@@ -1,6 +1,6 @@
 module RomanNumerals where
 
-  import qualified Data.Map as Map
+  import qualified Data.Map as Map (Map, fromList, keys, lookup)
 
   type RomanNumeral = String
 
