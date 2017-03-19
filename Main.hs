@@ -2,6 +2,8 @@ module Main where
 
   import Data.Maybe
 
+  import Control.Concurrent
+
   import Haste
   import Haste.DOM
   import Haste.Events
@@ -25,7 +27,7 @@ module Main where
       runGame oldParams@(RunParams (vis_t, n) vis_x vis_y game) = do {
         Just boardDiv <- elemById "board";
         board <- HTMLF.showCrossSection $ cutCrossSection (vis_t, n) vis_x vis_y game;
-        allowMonadList $ map (addClickHandler oldParams) (filter HTMLF.clickable board);
+        mapM_ (addClickHandler oldParams) (filter HTMLF.clickable board);
         setChildren boardDiv $ map HTMLF.get_DOM_elem board;
         return ();
       } where
@@ -37,7 +39,7 @@ module Main where
         addClickHandler oldParams@(RunParams (vis_t, n) vis_x vis_y game) (HTMLF.Header new_vis_t new_n element) = onEvent element Click (\ _ -> runGame $ RunParams (new_vis_t, new_n) new_vis_x new_vis_y game)
           where
             new_vis_x, new_vis_y :: Coordinate
-            new_vis_x
+            new_vis_x 
               | vis_x /= new_vis_t = vis_x
               | otherwise = vis_t
             new_vis_y

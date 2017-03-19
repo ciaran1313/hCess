@@ -1,29 +1,21 @@
-module CrossSection where
+module CommandLine.Show where
 
   import Game
-  import qualified Piece
   import Location
-  import Coordinate
+  import Piece
 
-  data CrossSection = CrossSection {
-    vis_t :: (Coordinate, Int)  ,
-    vis_x :: Coordinate         ,
-    vis_y :: Coordinate         ,
-    grid  :: [[Location]]       ,
-    game  :: Game               }
-
-  cutCrossSection :: (Coordinate, Int) -> Coordinate -> Coordinate -> (Game -> CrossSection)
-  cutCrossSection (vis_t, n) vis_x vis_y = CrossSection (vis_t, n) vis_x vis_y $ map row [0..]
-    where
-      row :: Int -> [Location]
-      row y = map(\x -> square x y) [0..]
-        where
-          square :: Int -> Int -> Location
-          square x y = Location (thingFor n x y vis_t) (thingFor n x y vis_x) (thingFor n x y vis_y)
-
-  instance Show CrossSection where
-    show (CrossSection (vis_t, n) vis_x vis_y grid game) = (++)(cornerHeightIndicator ++ drop (length cornerHeightIndicator) (replicate indentLength ' ' ++ "  " ++ columnHeaderRow)) $ foldl(\acc rowNumber -> acc ++ showRowByNumber rowNumber ++ "\n" ++ horizontalDivider) horizontalDivider $ enumFromTo 0 $ lastIndexOf vis_y game
+  instance Show Game where
+    show game@(Game _ _ selectedSquare (vis_t, n) vis_x vis_y boardMap) = (++)(cornerHeightIndicator ++ drop (length cornerHeightIndicator) (replicate indentLength ' ' ++ "  " ++ columnHeaderRow)) $ foldl(\acc rowNumber -> acc ++ showRowByNumber rowNumber ++ "\n" ++ horizontalDivider) horizontalDivider $ enumFromTo 0 $ lastIndexOf vis_y game
       where
+
+        grid :: [[Location]]
+        grid = map row [0..]
+          where
+            row :: Int -> [Location]
+            row y = map(\x -> square x y) [0..]
+              where
+                square :: Int -> Int -> Location
+                square x y = Location (thingFor n x y vis_t) (thingFor n x y vis_x) (thingFor n x y vis_y)
 
         setStringSize :: Int -> String -> String
         setStringSize size string
@@ -57,4 +49,4 @@ module CrossSection where
               where
 
                 show_square :: Location -> String
-                show_square square = Piece.defaultSymbol $ getPieceAt square game
+                show_square square = Piece.defaultSymbol $ getPieceAt game square

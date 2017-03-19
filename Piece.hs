@@ -10,8 +10,21 @@ module Piece where
   opponent White = Black
   opponent Black = White
 
-  data Kind = Pawn {hasMoved :: Bool} | Rook {hasMoved :: Bool}  | Knight | Bishop | Queen | King {hasMoved :: Bool}
+  data Kind = Pawn {hasMoved :: Bool}
+            | Rook {hasMoved :: Bool}
+            | Knight
+            | Bishop
+            | Queen
+            | King {hasMoved :: Bool}
     deriving (Eq)
+
+  instance Show Kind where
+    show (Pawn _) = "Pawn"
+    show (Rook _) = "Rook"
+    show (Knight) = "Knight"
+    show (Bishop) = "Bishop"
+    show (Queen)  = "Queen"
+    show (King _) = "King"
 
   virginPawn, virginRook, virginKing :: Kind
   virginPawn = Pawn {hasMoved = False}
@@ -25,6 +38,30 @@ module Piece where
       nextLocation          ::    (Maybe Location)    ,
       previousLocation      ::    (Maybe Location)    }
     deriving (Eq)
+
+  setIsStop :: Piece -> Bool -> Piece
+  setIsStop piece newIsStop = Piece {
+    colour = colour piece                         ,
+    kind = kind piece                             ,
+    isStop = newIsStop                            ,
+    nextLocation = nextLocation piece             ,
+    previousLocation = previousLocation piece     }
+
+  setNextLocation:: Piece -> Maybe Location -> Piece
+  setNextLocation piece newNextLocation = Piece {
+    colour = colour piece                         ,
+    kind = kind piece                             ,
+    isStop = isStop piece                         ,
+    nextLocation = newNextLocation                ,
+    previousLocation = previousLocation piece     }
+
+  setPreviousLocation:: Piece -> Maybe Location -> Piece
+  setPreviousLocation piece newPreviousLocation = Piece {
+    colour = colour piece                         ,
+    kind = kind piece                             ,
+    isStop = isStop piece                         ,
+    nextLocation = nextLocation piece             ,
+    previousLocation = newPreviousLocation        }
 
   pathIndicator :: Piece -> Char
   pathIndicator p = if nextLocation p == Nothing then ' ' else if isStop p then '#' else '*'
