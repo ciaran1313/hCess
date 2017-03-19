@@ -3,6 +3,7 @@ module Main where
   import Control.Concurrent
   import Control.Concurrent.MVar
   import Control.Monad
+
   import System.Exit
 
   import Text.Read
@@ -26,11 +27,22 @@ module Main where
     status_MVar <- newMVar Status.No_Issues;
     runCommand(game_MVar, status_MVar)["refresh"];
     forever $ do {
-      putStr ">> ";
+      game <- readMVar game_MVar;
+      putStr $ prompt game;
       fmap words getLine >>= runCommand (game_MVar, status_MVar); --splits the input into its arguments and runs the command
     };
     return ();
   } where
+
+      prompt :: Game.Game -> String
+      prompt game = colour ++ selected ++ ": "
+        where
+
+          colour :: String
+          colour = show $ Game.turnColour game
+
+          selected :: String
+          selected = fromMaybe[] $ fmap(\str -> "(" ++ str ++ ")")(show <$> Game.selectedSquare game)
 
       invalidCommand :: IO ()
       invalidCommand= do {
