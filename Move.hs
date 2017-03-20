@@ -14,6 +14,7 @@ module Move where
   import Location (Location)
   import Status (Status(..))
   import Select (deselect)
+  import Aging (age)
 
   move :: Location -> (MVar Game, MVar Status) -> IO ()
   move destination (game_MVar, status_MVar) = do {
@@ -50,8 +51,8 @@ module Move where
                 piece <- return $ setNextLocation piece Nothing;
                 piece <- return $ setPreviousLocation piece $ Just (extendedPath !! pred i);
                 applyToMVar game_MVar $ (\g -> putPieceAt g (extendedPath !! i) piece);
-                --deselects
-                deselect game_MVar;
+                --prepares for other player
+                applyToMVar game_MVar age;
                 --fin
                 return ();
               }

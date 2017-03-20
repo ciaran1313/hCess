@@ -1,7 +1,7 @@
 module Game.Mutators where
 
   import Game.Core (Game(..), BoardMap)
-  import Piece.Core (Colour)
+  import Piece.Core (Colour, opponent)
   import Location (Location)
 
   setTurnNumber :: Game -> Int -> Game
@@ -23,6 +23,9 @@ module Game.Mutators where
     vis_x = vis_x game                    ,
     vis_y = vis_y game                    ,
     boardMap = boardMap game              }
+
+  switchTurnColour :: Game -> Game
+  switchTurnColour game = setTurnColour game (opponent $ turnColour game)
 
   setSelectedSquare :: Game -> Maybe Location -> Game
   setSelectedSquare game newSelectedSquare = Game {
