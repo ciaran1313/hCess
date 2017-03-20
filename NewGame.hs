@@ -2,8 +2,8 @@ module NewGame where
 
   import qualified Data.Map as Map (fromList)
 
-  import Game (Game(..), BoardMap(..))
-  import Piece (Piece(..), Colour(..), Kind(..), virginPawn, virginRook, virginKing)
+  import Game.Core (Game(..), BoardMap(..))
+  import Piece.Core (Piece(..), Colour(..), Kind(..), virginPawn, virginRook, virginKing)
   import Location (Location(..))
   import Coordinate (Coordinate(..))
 

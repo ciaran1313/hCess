@@ -1,6 +1,7 @@
 module Status where
 
-  import Piece (Piece(..))
+  import Piece.Core (Piece(..))
+  import Piece.Show ()
   import Location (Location)
 
   data Status = No_Issues

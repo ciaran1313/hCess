@@ -2,7 +2,7 @@ module Path where
 
   import Data.List (sort)
 
-  import Piece (Kind(..))
+  import Piece.Core (Kind(..))
   import Location (Location(..))
   import MovementLimitations
   import OffsetLocation (OffsetLocation(..), calculateOffsetLocation)

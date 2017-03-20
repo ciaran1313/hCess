@@ -5,8 +5,9 @@ module Select where
   import Data.Maybe (isJust, isNothing)
 
   import Location (Location)
-  import Game (Game(..), getPieceAt, setSelectedSquare)
-  import Piece (colour, nextLocation)
+  import Game.Core (Game(..), getPieceAt)
+  import Game.Mutators (setSelectedSquare)
+  import Piece.Core (colour, nextLocation)
   import Status (Status(..))
 
   select :: Location -> (MVar Game, MVar Status) -> IO ()

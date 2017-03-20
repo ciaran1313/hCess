@@ -9,7 +9,7 @@ module Main where
 
   import Data.Maybe (fromJust, fromMaybe, isJust, isNothing)
 
-  import Game (Game, turnNumber, turnColour, selectedSquare, vis_t, vis_x, vis_y, changeView)
+  import Game.Core (Game, turnNumber, turnColour, selectedSquare, vis_t, vis_x, vis_y, changeView)
   import Coordinate (Coordinate, identifyEnumFunctionIn, deEnumFunctionFor)
   import NewGame (newGame)
   import Select (select, deselect)
@@ -136,7 +136,7 @@ module Main where
     --view (explicit)
       runCommand(game_MVar, status_MVar)["view", str_new_vis_t, str_new_n, str_new_vis_x, str_new_vis_y] = do {
         game <- takeMVar game_MVar;
-        putMVar game_MVar (Game.changeView (new_vis_t, new_n) new_vis_x new_vis_y game);
+        putMVar game_MVar (changeView (new_vis_t, new_n) new_vis_x new_vis_y game);
         runCommand(game_MVar, status_MVar)["refresh"];
         return ();
       } where
@@ -166,10 +166,10 @@ module Main where
 
           new_vis_x, new_vis_y :: Game -> Coordinate
           new_vis_x game
-            | (Game.vis_x game) /= (new_vis_t) = (Game.vis_x game)
+            | (vis_x game) /= (new_vis_t) = (vis_x game)
             | otherwise = (fst $ vis_t game)
           new_vis_y game
-            | (Game.vis_y game) /= (new_vis_t) = (Game.vis_y game)
+            | (vis_y game) /= (new_vis_t) = (vis_y game)
             | otherwise = (fst $ vis_t game)
 
           maybe_new_n :: Maybe Int

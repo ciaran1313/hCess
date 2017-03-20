@@ -1,8 +1,8 @@
 module CommandLine.Show where
 
-  import Game (Game(..), getPieceAt)
+  import Game.Core (Game(..), getPieceAt)
   import Location (Location(..))
-  import Piece (defaultSymbol)
+  import Piece.Symbol (defaultSymbol)
   import Coordinate (lastIndexOf, thingFor, enumFunctionFor)
 
   instance Show Game where
@@ -50,4 +50,4 @@ module CommandLine.Show where
               where
 
                 show_square :: Location -> String
-                show_square square = Piece.defaultSymbol $ getPieceAt game square
+                show_square square = defaultSymbol $ getPieceAt game square

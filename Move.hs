@@ -1,14 +1,19 @@
 module Move where
 
-  import Control.Concurrent.MVar (MVar, readMVar, swapMVar)
+  import Control.Concurrent.MVar (MVar, newMVar, takeMVar, putMVar, readMVar, swapMVar)
+  import Control.Monad (replicateM_)
 
-  import Data.Maybe (isJust, fromMaybe)
+  import Data.Maybe (isJust, fromJust, fromMaybe)
 
-  import Game (Game, turnColour, selectedSquare, getPieceAt)
-  import Piece (Kind, colour, kind)
+  import GeneralFunctions (applyToMVar)
+
+  import Game.Core (Game, turnColour, selectedSquare, getPieceAt, getSelectedPiece, putPieceAt)
+  import Piece.Core (Piece(..), Kind, Colour, colour, kind)
+  import Piece.Mutators (setIsStop, setNextLocation, setPreviousLocation)
   import Path (calculatePath)
   import Location (Location)
   import Status (Status(..))
+  import Select (deselect)
 
   move :: Location -> (MVar Game, MVar Status) -> IO ()
   move destination (game_MVar, status_MVar) = do {
@@ -23,18 +28,35 @@ module Move where
               then changeStatus (Obstructed_Path_At $ obstructions game)
               else do {
                 changeStatus No_Issues;
-
+                extendedPath <- return $ (fromJust $ selectedSquare game) : (fromJust $ path game) ++ [destination];
+                --replaces the first piece
+                piece <- return $ fromJust $ getSelectedPiece game;
+                piece <- return $ setNextLocation piece (Just $ extendedPath !! 1);
+                applyToMVar game_MVar $ (\g -> putPieceAt g (extendedPath !! 0) piece);
+                --places the pieces in the path
+                counter <- newMVar (1 :: Int);
+                piece <- return $ setIsStop piece False;
+                replicateM_ (length extendedPath - 2) $ do {
+                  i <- readMVar counter;
+                  piece <- return $ setNextLocation piece (Just $ extendedPath !! succ i);
+                  piece <- return $ setPreviousLocation piece (Just $ extendedPath !! pred i);
+                  applyToMVar game_MVar $ (\g -> putPieceAt g (extendedPath !! i) piece);
+                  applyToMVar counter succ;
+                  return ();
+                };
+                --places the final location of the piece
+                i <- readMVar counter;
+                piece <- return $ setIsStop piece True;
+                piece <- return $ setNextLocation piece Nothing;
+                piece <- return $ setPreviousLocation piece $ Just (extendedPath !! pred i);
+                applyToMVar game_MVar $ (\g -> putPieceAt g (extendedPath !! i) piece);
+                --deselects
+                deselect game_MVar;
+                --fin
                 return ();
               }
       );
     } where
-      {-}
-        markPath :: [Location] -> Location -> IO ()
-        markPath (location:nextLocation:locations) previousLocation = do {
-          game <- takeMVar game_MVar;
-          putPieceAt game location (fromJust $ getPieceAt game location);
-          return ();
-        -}
 
         path :: Game -> Maybe [Location]
         path game = (calculatePath isCapture <$> piece_kind <*> selectedSquare game <*> Just destination) >>= id
