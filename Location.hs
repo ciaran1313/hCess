@@ -1,6 +1,6 @@
 module Location where
 
-  import Data.Maybe (fromJust)
+  import Data.Maybe (fromMaybe)
 
   import RomanNumerals (toRomanNumeral)
   import {-# SOURCE #-} Coordinate (toFile, toRank, fromTurn, fromFile, fromRank)
@@ -21,6 +21,8 @@ module Location where
         readLocation(file:rank:turn) = Location t x y
           where
             t, x, y :: Int
-            t = fromJust $ fromTurn (turn)
-            x = fromJust $ fromFile [file]
-            y = fromJust $ fromRank [rank]
+            t = fromMaybe (error "no parse") $ fromTurn (turn)
+            x = fromMaybe (error "no parse") $ fromFile [file]
+            y = fromMaybe (error "no parse") $ fromRank [rank]
+
+        readLocation _ = error "no parse"
