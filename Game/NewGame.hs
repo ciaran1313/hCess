@@ -1,4 +1,4 @@
-module NewGame where
+module Game.NewGame where
 
   import qualified Data.Map as Map (fromList)
 

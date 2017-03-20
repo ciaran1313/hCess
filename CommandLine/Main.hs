@@ -10,8 +10,8 @@ module Main where
   import Data.Maybe (fromJust, fromMaybe, isJust, isNothing)
 
   import Game.Core (Game, turnNumber, turnColour, selectedSquare, vis_t, vis_x, vis_y, changeView)
+  import Game.NewGame (newGame)
   import Coordinate (Coordinate, identifyEnumFunctionIn, deEnumFunctionFor)
-  import NewGame (newGame)
   import Select (select, deselect)
   import Move (move)
   import Location (Location)
