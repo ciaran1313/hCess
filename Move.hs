@@ -51,7 +51,7 @@ module Move where
                 piece <- return $ setNextLocation piece Nothing;
                 piece <- return $ setPreviousLocation piece $ Just (extendedPath !! pred i);
                 applyToMVar game_MVar $ (\g -> putPieceAt g (extendedPath !! i) piece);
-                --prepares for other player
+                --ages game
                 applyToMVar game_MVar age;
                 --fin
                 return ();
