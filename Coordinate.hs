@@ -68,5 +68,5 @@ module Coordinate where
     | c `elem` romanNumeralChars = Just T
     | otherwise = Nothing
   identifyEnumFunctionIn str
-    | foldl(\acc c -> elem c romanNumeralChars && acc)(True)(str) = Just T
+    | all (`elem` romanNumeralChars) str = Just T
     | otherwise = Nothing
