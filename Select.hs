@@ -5,7 +5,7 @@ module Select where
   import Data.Maybe (isJust, isNothing)
 
   import Location (Location)
-  import Game.Core (Game(..), getPieceAt)
+  import Game.Core (Game(..), getPieceAt, isWithinBoundsOfBoard)
   import Game.Mutators (setSelectedSquare)
   import Piece.Core (colour, nextLocation)
   import Status (Status(..))
@@ -13,17 +13,19 @@ module Select where
   select :: Location -> (MVar Game, MVar Status) -> IO ()
   select location (game_MVar, status_MVar) = do {
     game <- readMVar game_MVar;
-    (if isNothing (getPieceAt game location)
-      then changeStatus (Player_Tried_To_Select_An_Empty_Square location)
-      else if (/=)(colour <$> getPieceAt game location)(Just $ turnColour game)
-        then changeStatus (Player_Tried_To_Select_An_Opponents_Piece location)
-        else if isJust (getPieceAt game location >>= nextLocation)
-          then changeStatus (Player_Tried_To_Select_An_Piece_Thats_Already_Been_Moved location $ getPieceAt game location)
-          else do {
-            swapMVar game_MVar (setSelectedSquare game $ Just location);
-            changeStatus No_Issues;
-            return ();
-          }
+    (if not $ location `isWithinBoundsOfBoard` game
+      then changeStatus Location_Is_Outside_Bounds_Of_Board
+      else if isNothing (getPieceAt game location)
+        then changeStatus (Player_Tried_To_Select_An_Empty_Square location)
+        else if (/=)(colour <$> getPieceAt game location)(Just $ turnColour game)
+          then changeStatus (Player_Tried_To_Select_An_Opponents_Piece location)
+          else if isJust (getPieceAt game location >>= nextLocation)
+            then changeStatus (Player_Tried_To_Select_An_Piece_Thats_Already_Been_Moved location $ getPieceAt game location)
+            else do {
+              swapMVar game_MVar (setSelectedSquare game $ Just location);
+              changeStatus No_Issues;
+              return ();
+            }
     );
   } where
       changeStatus :: Status -> IO ()

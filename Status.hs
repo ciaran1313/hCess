@@ -12,6 +12,7 @@ module Status where
               | Player_Tried_To_Capture_Their_Own_Piece
               | Illegal_Path
               | Obstructed_Path_At [Location]
+              | Location_Is_Outside_Bounds_Of_Board
               deriving (Eq)
 
   message :: Status -> String
@@ -25,3 +26,4 @@ module Status where
   message Player_Tried_To_Capture_Their_Own_Piece = "You cannot capture your own pieces."
   message Illegal_Path = "That piece does not move in that shape."
   message (Obstructed_Path_At locations) = "The path is obstructed at " ++ show locations ++ "."
+  message Location_Is_Outside_Bounds_Of_Board = "That location is outside the bounds of the board"

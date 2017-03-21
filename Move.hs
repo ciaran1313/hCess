@@ -7,7 +7,7 @@ module Move where
 
   import GeneralFunctions (applyToMVar)
 
-  import Game.Core (Game, turnColour, selectedSquare, getPieceAt, getSelectedPiece, putPieceAt)
+  import Game.Core (Game, turnColour, selectedSquare, getPieceAt, getSelectedPiece, putPieceAt, isWithinBoundsOfBoard)
   import Piece.Core (Piece(..), Kind, Colour, colour, kind)
   import Piece.Mutators (setIsStop, setNextLocation, setPreviousLocation)
   import Path (calculatePath)
@@ -27,35 +27,37 @@ module Move where
             then changeStatus Illegal_Path
             else if pathIsObstructed game
               then changeStatus (Obstructed_Path_At $ obstructions game)
-              else do {
-                changeStatus No_Issues;
-                extendedPath <- return $ (fromJust $ selectedSquare game) : (fromJust $ path game) ++ [destination];
-                --replaces the first piece
-                piece <- return $ fromJust $ getSelectedPiece game;
-                piece <- return $ setNextLocation piece (Just $ extendedPath !! 1);
-                applyToMVar game_MVar $ (\g -> putPieceAt g (extendedPath !! 0) piece);
-                --places the pieces in the path
-                counter <- newMVar (1 :: Int);
-                piece <- return $ setIsStop piece False;
-                replicateM_ (length extendedPath - 2) $ do {
+              else if not $ destination `isWithinBoundsOfBoard` game
+                then changeStatus Location_Is_Outside_Bounds_Of_Board
+                else do {
+                  changeStatus No_Issues;
+                  extendedPath <- return $ (fromJust $ selectedSquare game) : (fromJust $ path game) ++ [destination];
+                  --replaces the first piece
+                  piece <- return $ fromJust $ getSelectedPiece game;
+                  piece <- return $ setNextLocation piece (Just $ extendedPath !! 1);
+                  applyToMVar game_MVar $ (\g -> putPieceAt g (extendedPath !! 0) piece);
+                  --places the pieces in the path
+                  counter <- newMVar (1 :: Int);
+                  piece <- return $ setIsStop piece False;
+                  replicateM_ (length extendedPath - 2) $ do {
+                    i <- readMVar counter;
+                    piece <- return $ setNextLocation piece (Just $ extendedPath !! succ i);
+                    piece <- return $ setPreviousLocation piece (Just $ extendedPath !! pred i);
+                    applyToMVar game_MVar $ (\g -> putPieceAt g (extendedPath !! i) piece);
+                    applyToMVar counter succ;
+                    return ();
+                  };
+                  --places the final location of the piece
                   i <- readMVar counter;
-                  piece <- return $ setNextLocation piece (Just $ extendedPath !! succ i);
-                  piece <- return $ setPreviousLocation piece (Just $ extendedPath !! pred i);
+                  piece <- return $ setIsStop piece True;
+                  piece <- return $ setNextLocation piece Nothing;
+                  piece <- return $ setPreviousLocation piece $ Just (extendedPath !! pred i);
                   applyToMVar game_MVar $ (\g -> putPieceAt g (extendedPath !! i) piece);
-                  applyToMVar counter succ;
+                  --ages game
+                  applyToMVar game_MVar age;
+                  --fin
                   return ();
-                };
-                --places the final location of the piece
-                i <- readMVar counter;
-                piece <- return $ setIsStop piece True;
-                piece <- return $ setNextLocation piece Nothing;
-                piece <- return $ setPreviousLocation piece $ Just (extendedPath !! pred i);
-                applyToMVar game_MVar $ (\g -> putPieceAt g (extendedPath !! i) piece);
-                --ages game
-                applyToMVar game_MVar age;
-                --fin
-                return ();
-              }
+                }
       );
     } where
 
