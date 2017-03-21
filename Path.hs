@@ -15,26 +15,26 @@ module Path where
       actualDiffList :: [Int]
       actualDiffList = sort $ map(\f -> abs $ f destination - f startSquare)[t_value, x_value, y_value]
 
-  calculateLinearPath :: MovementLimitations -> Location -> Location -> Maybe [Location]
-  calculateLinearPath movementLimitations startSquare destination = f <$> calculateOffsetLocation movementLimitations startSquare destination
+  calculateLinearPathWithOffsetLocation :: OffsetLocation -> [Location]
+  calculateLinearPathWithOffsetLocation input
+    | distance input <= 1 = []
+    | otherwise = nextLocation : calculateLinearPathWithOffsetLocation OffsetLocation {
+      t_direction = t_direction input   ,
+      x_direction = x_direction input   ,
+      y_direction = y_direction input   ,
+      distance = distance input - 1     ,
+      origin = nextLocation             }
     where
-      f :: OffsetLocation -> [Location]
-      f r
-        | distance r == 0 = []
-        | otherwise = nextLocation : f OffsetLocation {
-          t_direction = t_direction r   ,
-          x_direction = x_direction r   ,
-          y_direction = y_direction r   ,
-          distance = distance r - 1     ,
-          origin = nextLocation         }
+      nextLocation :: Location
+      nextLocation = Location new_t new_x new_y
         where
-          nextLocation :: Location
-          nextLocation = Location new_t new_x new_y
-            where
-              new_t, new_x, new_y :: Int
-              new_t = (+)(t_direction r)(t_value $ origin r)
-              new_x = (+)(x_direction r)(x_value $ origin r)
-              new_y = (+)(y_direction r)(y_value $ origin r)
+          new_t, new_x, new_y :: Int
+          new_t = (+)(t_direction input)(t_value $ origin input)
+          new_x = (+)(x_direction input)(x_value $ origin input)
+          new_y = (+)(y_direction input)(y_value $ origin input)
+
+  calculateLinearPath :: MovementLimitations -> Location -> Location -> Maybe [Location]
+  calculateLinearPath movementLimitations startSquare destination = calculateLinearPathWithOffsetLocation <$> calculateOffsetLocation movementLimitations startSquare destination
 
   calculatePath :: Bool -> Kind -> Location -> Location -> Maybe [Location]
   calculatePath isCapture@(True ) (Pawn _) = calculateDjumpPath[0,1,1]

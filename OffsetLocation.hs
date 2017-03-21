@@ -11,6 +11,7 @@ module OffsetLocation where
     y_direction   ::  Direction  ,
     distance      ::  Int        ,
     origin        ::  Location   }
+    deriving (Show)
 
   calculateOffsetLocation :: MovementLimitations -> Location -> Location -> Maybe OffsetLocation
   calculateOffsetLocation (MovementLimitations straightPathAllowed diagonalPathAllowed maximumDistance) startSquare destination
@@ -35,4 +36,4 @@ module OffsetLocation where
       calculate_y = calculateCoordinateValue 2
 
       calculate_distance :: Int
-      calculate_distance = maximum changes
+      calculate_distance = maximum $ map abs changes
