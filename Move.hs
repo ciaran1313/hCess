@@ -15,6 +15,7 @@ module Move where
   import Status (Status(..))
   import Select (deselect)
   import Aging (age)
+  --import CaptureOrTrample(captureOrTrample)
 
   move :: Location -> (MVar Game, MVar Status) -> IO ()
   move destination (game_MVar, status_MVar) = do {
@@ -31,6 +32,8 @@ module Move where
                 then changeStatus Location_Is_Outside_Bounds_Of_Board
                 else do {
                   changeStatus No_Issues;
+                  --captureOrTrample game_MVar destination;
+                  --game <- readMVar game_MVar;
                   extendedPath <- return $ (fromJust $ selectedSquare game) : (fromJust $ path game) ++ [destination];
                   --replaces the first piece
                   piece <- return $ fromJust $ getSelectedPiece game;

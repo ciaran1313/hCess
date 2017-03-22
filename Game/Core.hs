@@ -1,6 +1,6 @@
  module Game.Core where
 
-  import qualified Data.Map as Map (Map, insert, lookup)
+  import qualified Data.Map as Map (Map, insert, lookup, delete)
 
   import Piece.Core (Piece, Colour)
   import Location (Location(..))
@@ -33,8 +33,18 @@
     vis_y = vis_y game                                              ,
     boardMap = Map.insert location piece (boardMap game)            }
 
-  associatedLocation :: (Piece -> Maybe Location) -> Location -> BoardMap -> Maybe Location
-  associatedLocation f location boardMap = Map.lookup location boardMap >>= f
+  removePieceAt :: Game -> Location -> Game
+  removePieceAt game location = Game {
+    turnNumber = turnNumber game                                    ,
+    turnColour = turnColour game                                    ,
+    selectedSquare = selectedSquare game                            ,
+    vis_t = vis_t game                                              ,
+    vis_x = vis_x game                                              ,
+    vis_y = vis_y game                                              ,
+    boardMap = Map.delete location (boardMap game)                  }
+
+  associatedLocation :: (Piece -> Maybe Location) -> Location -> Game -> Maybe Location
+  associatedLocation f location game = Map.lookup location (boardMap game) >>= f
 
   changeView :: (Coordinate, Int) -> Coordinate -> Coordinate -> Game -> Game
   changeView vis_t vis_x vis_y (Game turnNumber turnColour selectedSquare _ _ _ boardMap) = Game turnNumber turnColour selectedSquare vis_t vis_x vis_y boardMap
