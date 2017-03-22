@@ -17,12 +17,15 @@ module Location where
   instance Read Location where
     readsPrec d r = [(readLocation r, [])]
       where
+
+        no_parse = errorWithoutStackTrace "Prelude.read: no parse"
+
         readLocation :: String -> Location
         readLocation(file:rank:turn) = Location t x y
           where
             t, x, y :: Int
-            t = fromMaybe (error "no parse") $ fromTurn (turn)
-            x = fromMaybe (error "no parse") $ fromFile [file]
-            y = fromMaybe (error "no parse") $ fromRank [rank]
+            t = fromMaybe no_parse $ fromTurn (turn)
+            x = fromMaybe no_parse $ fromFile [file]
+            y = fromMaybe no_parse $ fromRank [rank]
 
-        readLocation _ = error "no parse"
+        readLocation _ = no_parse
